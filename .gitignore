@@ -1,0 +1,13 @@
+__pycache__/
+
+# virtual environment
+/env
+
+# environment variables
+.env
+
+# database
+*.db
+
+.DS_Store
+.vscode

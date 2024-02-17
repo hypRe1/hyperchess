@@ -49,7 +49,7 @@ class SignupForm(OAuth2PasswordRequestForm):
     def __init__(
         self,
         username: str = Form(),
-        email: str = Form(),
+        email: EmailStr = Form(),
         password: str = Form(),
     ):
         super().__init__(

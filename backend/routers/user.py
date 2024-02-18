@@ -64,6 +64,22 @@ class SignupForm(OAuth2PasswordRequestForm):
         self.email = email
 
 
+class DeleteForm(OAuth2PasswordRequestForm):
+    def __init__(
+        self,
+        username: str = Form(),
+        password: str = Form(),
+    ):
+        super().__init__(
+            grant_type=None,
+            username=username,
+            password=password,
+            scope="",
+            client_id=None,
+            client_secret=None,
+        )
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -156,8 +172,14 @@ def create_access_token(user_id: int, expires_delta: timedelta) -> str:
 
 async def user_identifer(request: Request | WebSocket) -> str:
     token = request.headers.get("Authorization")
-    if token is not None:
-        return token + ":" + request.scope["path"]
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: int = payload.get("sub")
+        if user_id is not None:
+            return user_id
+    except:
+        pass
 
     forwarded = request.headers.get("X-Forwarded-For")
     if forwarded:
@@ -166,7 +188,7 @@ async def user_identifer(request: Request | WebSocket) -> str:
 
 
 @router.post(
-    "/", status_code=201, dependencies=[Depends(RateLimiter(times=2, minutes=5))]
+    "/", status_code=201, dependencies=[Depends(RateLimiter(times=3, minutes=1))]
 )
 async def create_user(
     form_data: Annotated[SignupForm, Depends()],
@@ -199,7 +221,7 @@ async def create_user(
 @router.post(
     "/token",
     response_model=Token,
-    dependencies=[Depends(RateLimiter(times=3, minutes=5))],
+    dependencies=[Depends(RateLimiter(times=3, seconds=10))],
 )
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: db_dependency
@@ -214,14 +236,14 @@ async def login_for_access_token(
 
 
 @router.delete(
-    "/", status_code=200, dependencies=[Depends(RateLimiter(times=3, minutes=2))]
+    "/", status_code=200, dependencies=[Depends(RateLimiter(times=10, seconds=1))]
 )
 async def delete_user(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    form_data: Annotated[DeleteForm, Depends()],
     user: user_dependency,
     db: db_dependency,
 ) -> None:
-    if form_data != user:
+    if form_data.username != user.username:
         raise HTTPException(400, detail="Wrong username")
 
     if not bcrypt_context.verify(form_data.password, user.password):
@@ -238,7 +260,7 @@ async def delete_user(
 @router.put(
     "/avatar",
     status_code=201,
-    dependencies=[Depends(RateLimiter(times=2, seconds=5, identifier=user_identifer))],
+    dependencies=[Depends(RateLimiter(times=2, seconds=1, identifier=user_identifer))],
 )
 async def upload_avatar(
     file_request: UploadFile, user: user_dependency, db: db_dependency
@@ -265,7 +287,7 @@ async def upload_avatar(
 @router.delete(
     "/avatar",
     status_code=200,
-    dependencies=[Depends(RateLimiter(times=2, seconds=2, identifier=user_identifer))],
+    dependencies=[Depends(RateLimiter(times=10, seconds=1, identifier=user_identifer))],
 )
 async def delete_avatar(user: user_dependency, db: db_dependency) -> None:
     user.picture = None
@@ -279,7 +301,7 @@ async def delete_avatar(user: user_dependency, db: db_dependency) -> None:
 @router.patch(
     "/profile",
     status_code=200,
-    dependencies=[Depends(RateLimiter(times=10, seconds=5, identifier=user_identifer))],
+    dependencies=[Depends(RateLimiter(times=10, seconds=1, identifier=user_identifer))],
 )
 async def edit_user_info(
     edit_user_request: EditUserRequest, user: user_dependency, db: db_dependency
@@ -302,7 +324,7 @@ async def edit_user_info(
 @router.get(
     "/profile",
     status_code=200,
-    dependencies=[Depends(RateLimiter(times=10, seconds=2, identifier=user_identifer))],
+    dependencies=[Depends(RateLimiter(times=10, seconds=1, identifier=user_identifer))],
 )
 async def get_personal_profile(user: user_dependency):
     return PersonalUserResponse(
@@ -318,7 +340,7 @@ async def get_personal_profile(user: user_dependency):
 @router.get(
     "/profile/{username}",
     status_code=200,
-    dependencies=[Depends(RateLimiter(times=10, seconds=2))],
+    dependencies=[Depends(RateLimiter(times=10, seconds=1))],
 )
 async def get_user_profile(username: str, db: db_dependency):
     statement = select(Users).where(Users.username == username)
@@ -340,7 +362,7 @@ async def get_user_profile(username: str, db: db_dependency):
 @router.get(
     "/avatar",
     status_code=200,
-    dependencies=[Depends(RateLimiter(times=5, seconds=2, identifier=user_identifer))],
+    dependencies=[Depends(RateLimiter(times=10, seconds=1, identifier=user_identifer))],
     responses={200: {"content": {"image/png": {}}}},
     response_class=Response,
 )

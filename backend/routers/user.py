@@ -56,7 +56,7 @@ class SignupForm(OAuth2PasswordRequestForm):
             grant_type=None,
             username=username,
             password=password,
-            scope=None,
+            scope="",
             client_id=None,
             client_secret=None,
         )

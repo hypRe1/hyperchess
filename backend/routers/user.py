@@ -203,6 +203,12 @@ async def create_user(
     if len(form_data.password) < 6:
         raise HTTPException(400, detail="Password should be at least 6 characters long")
 
+    statement = select(Users).where(Users.username == form_data.username)
+    result = await db.execute(statement=statement)
+
+    if result.scalar_one_or_none() is not None:
+        raise HTTPException(400, "Someone already has that username")
+
     create_user_model = Users(
         id=random.randrange(0, 9223372036854775807),
         username=form_data.username,
@@ -255,6 +261,27 @@ async def delete_user(
         await db.commit()
     except:
         raise HTTPException(500, detail="Failed to delete user from database")
+
+
+@router.put(
+    path="/",
+    status_code=200,
+    dependencies=[Depends(RateLimiter(times=3, seconds=2))],
+)
+async def update_username(
+    username: str, user: user_dependency, db: db_dependency
+) -> None:
+    statement = select(Users).where(Users.username == username)
+    result = await db.execute(statement=statement)
+
+    if result.scalar_one_or_none() is not None:
+        raise HTTPException(400, "Someone already has that username")
+
+    user.username = username
+    try:
+        await db.commit()
+    except:
+        raise HTTPException(500, detail="Failed to update username")
 
 
 @router.put(

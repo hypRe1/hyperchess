@@ -194,6 +194,9 @@ async def create_user(
     form_data: Annotated[SignupForm, Depends()],
     db: db_dependency,
 ) -> None:
+    """
+    Create a user account
+    """
 
     if not all(c.isalnum() for c in form_data.username):
         raise HTTPException(
@@ -232,6 +235,9 @@ async def create_user(
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: db_dependency
 ) -> dict[str, str]:
+    """
+    Login by getting a JWT
+    """
     user = await authenticate_user(form_data.username, form_data.password, db)
     if not user:
         raise HTTPException(401, detail="Could not validate user")
@@ -249,6 +255,9 @@ async def delete_user(
     user: user_dependency,
     db: db_dependency,
 ) -> None:
+    """
+    Delete account
+    """
     if form_data.username != user.username:
         raise HTTPException(400, detail="Wrong username")
 
@@ -271,6 +280,9 @@ async def delete_user(
 async def update_username(
     username: str, user: user_dependency, db: db_dependency
 ) -> None:
+    """
+    Update account username
+    """
     statement = select(Users).where(Users.username == username)
     result = await db.execute(statement=statement)
 
@@ -292,6 +304,10 @@ async def update_username(
 async def upload_avatar(
     file_request: UploadFile, user: user_dependency, db: db_dependency
 ) -> None:
+    """
+    Upload a profile picture for account
+    """
+
     if file_request.content_type not in ("image/jpeg", "image/png"):
         raise HTTPException(400, "Unsupported file type")
 
@@ -317,6 +333,10 @@ async def upload_avatar(
     dependencies=[Depends(RateLimiter(times=10, seconds=1, identifier=user_identifer))],
 )
 async def delete_avatar(user: user_dependency, db: db_dependency) -> None:
+    """
+    Remove profile picture
+    """
+
     user.picture = None
 
     try:
@@ -333,6 +353,10 @@ async def delete_avatar(user: user_dependency, db: db_dependency) -> None:
 async def edit_user_info(
     edit_user_request: EditUserRequest, user: user_dependency, db: db_dependency
 ) -> None:
+    """
+    Edit user information (about_me, country)
+    """
+
     user.about_me = edit_user_request.about_me
     user.country = edit_user_request.country
 
@@ -354,6 +378,9 @@ async def edit_user_info(
     dependencies=[Depends(RateLimiter(times=10, seconds=1, identifier=user_identifer))],
 )
 async def get_personal_profile(user: user_dependency):
+    """
+    Return account information of current user
+    """
     return PersonalUserResponse(
         username=user.username,
         email=user.email,
@@ -370,6 +397,10 @@ async def get_personal_profile(user: user_dependency):
     dependencies=[Depends(RateLimiter(times=10, seconds=1))],
 )
 async def get_user_profile(username: str, db: db_dependency):
+    """
+    Return public account information given username
+    """
+
     statement = select(Users).where(Users.username == username)
     result = await db.execute(statement)
     user = result.scalar_one_or_none()
@@ -394,6 +425,9 @@ async def get_user_profile(username: str, db: db_dependency):
     response_class=Response,
 )
 async def get_user_avatar(user: user_dependency):
+    """
+    Return profile picture of current user
+    """
     if user.picture is None:
         return Response(content=default_pfp, media_type="image/png")
 
@@ -408,6 +442,9 @@ async def get_user_avatar(user: user_dependency):
     response_class=Response,
 )
 async def get_user_avatar(username: str, db: db_dependency):
+    """
+    Return profile picture of account given username
+    """
     statement = select(Users).where(Users.username == username)
     result = await db.execute(statement)
     user = result.scalar_one_or_none()

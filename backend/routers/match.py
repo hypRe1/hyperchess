@@ -1,8 +1,4 @@
-import random
-from typing import Annotated
-
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from routers.user import user_dependency
 

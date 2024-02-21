@@ -5,8 +5,7 @@ from sqlalchemy import BLOB, Boolean, Column, DateTime, Integer, String
 class Users(Base):
     __tablename__ = "Users"
 
-    id = Column(Integer, primary_key=True)
-    username = Column(String(length=255), unique=True)
+    username = Column(String(length=255), primary_key=True)
     email = Column(String(length=255), unique=True)
     about_me = Column(String(length=500))
     password = Column(String(length=255))

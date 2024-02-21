@@ -109,8 +109,8 @@ invalid_auth = HTTPException(
 )
 
 
-async def get_user(user_id: int, db: db_dependency) -> Users:
-    statement = select(Users).where(Users.id == user_id)
+async def get_user(username: str, db: db_dependency) -> Users:
+    statement = select(Users).where(Users.username == username)
     result = await db.execute(statement)
     user = result.scalar_one_or_none()
 
@@ -129,8 +129,8 @@ async def get_current_user(
 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: int = payload.get("sub")
-        if user_id is None:
+        username: int = payload.get("sub")
+        if username is None:
             raise invalid_auth
 
     except ExpiredSignatureError:
@@ -142,7 +142,7 @@ async def get_current_user(
     except JWTError:
         raise invalid_auth
 
-    return await get_user(user_id, db)
+    return await get_user(username, db)
 
 
 user_dependency = Annotated[Users, Depends(get_current_user)]
@@ -161,9 +161,9 @@ async def authenticate_user(
     return user
 
 
-def create_access_token(user_id: int, expires_delta: timedelta) -> str:
+def create_access_token(username: str, expires_delta: timedelta) -> str:
     encode = {
-        "sub": str(user_id),
+        "sub": username,
         "iat": datetime.utcnow(),
         "exp": datetime.utcnow() + expires_delta,
     }
@@ -175,9 +175,9 @@ async def user_identifer(request: Request | WebSocket) -> str:
 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: int = payload.get("sub")
-        if user_id is not None:
-            return user_id
+        username: int = payload.get("sub")
+        if username is not None:
+            return username
     except:
         pass
 
@@ -213,7 +213,6 @@ async def create_user(
         raise HTTPException(400, "Someone already has that username")
 
     create_user_model = Users(
-        id=random.randrange(0, 9223372036854775807),
         username=form_data.username,
         email=form_data.email,
         password=bcrypt_context.hash(form_data.password),
@@ -242,7 +241,7 @@ async def login_for_access_token(
     if not user:
         raise HTTPException(401, detail="Could not validate user")
 
-    token = create_access_token(user.id, timedelta(minutes=20))
+    token = create_access_token(user.username, timedelta(minutes=20))
 
     return {"access_token": token, "token_type": "bearer"}
 
@@ -270,30 +269,6 @@ async def delete_user(
         await db.commit()
     except:
         raise HTTPException(500, detail="Failed to delete user from database")
-
-
-@router.put(
-    path="/",
-    status_code=200,
-    dependencies=[Depends(RateLimiter(times=3, seconds=2))],
-)
-async def update_username(
-    username: str, user: user_dependency, db: db_dependency
-) -> None:
-    """
-    Update account username
-    """
-    statement = select(Users).where(Users.username == username)
-    result = await db.execute(statement=statement)
-
-    if result.scalar_one_or_none() is not None:
-        raise HTTPException(400, "Someone already has that username")
-
-    user.username = username
-    try:
-        await db.commit()
-    except:
-        raise HTTPException(500, detail="Failed to update username")
 
 
 @router.put(

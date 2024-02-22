@@ -36,16 +36,11 @@ for router_file in os.listdir("routers"):
     if filename.endswith(".py"):
         path = "routers." + filename[:-3]
         router = importlib.import_module(path)
-        app.include_router(router.router)
+        app.include_router(router.router, prefix="/api")
 
 origins = ["http://localhost:3000"]
 
 app.add_middleware(CORSMiddleware, allow_origins=origins)
-
-
-@app.get("/")
-def home():
-    return {"james": "was here"}
 
 
 if __name__ == "__main__":

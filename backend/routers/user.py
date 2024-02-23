@@ -35,7 +35,7 @@ assert ALGORITHM, "JWT_ALGORITHM not found in .env"
 assert ALGORITHM in ALGORITHMS.SUPPORTED, f"Algorithm {ALGORITHM} not supported"
 
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_bearer = OAuth2PasswordBearer(tokenUrl="user/token")
+oauth2_bearer = OAuth2PasswordBearer(tokenUrl="api/user/token")
 
 with open("countries.csv") as f:
     valid_country_codes = {int(line.strip().split(",")[0][-3:]) for line in f}

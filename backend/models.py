@@ -1,5 +1,6 @@
 from database import Base
-from sqlalchemy import BLOB, Boolean, Column, DateTime, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, Integer, String
+from sqlalchemy.dialects.postgresql import BYTEA
 
 
 class Users(Base):
@@ -11,7 +12,16 @@ class Users(Base):
     password = Column(String(length=255))
     registration_date = Column(DateTime)
     country = Column(Integer)  # ISO 3166-1 numeric
-    picture = Column(BLOB)
+    picture = Column(BYTEA)
     rating = Column(Integer)
     admin = Column(Boolean, nullable=False, default=False)
     disabled = Column(Boolean, nullable=False, default=False)
+
+
+class Matches(Base):
+    __tablename__ = "Matches"
+
+    match_id = Column(Integer, primary_key=True)
+    white = Column(String(length=255))
+    black = Column(String(length=255))
+    moves = Column(BYTEA)

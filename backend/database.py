@@ -1,13 +1,18 @@
+import os
 from typing import Annotated
 
+from dotenv import find_dotenv, load_dotenv
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-URL_DATABASE = "sqlite+aiosqlite:///./hyperchess.db"
+load_dotenv(find_dotenv())
 
-engine = create_async_engine(URL_DATABASE, connect_args={"check_same_thread": False})
+URL_DATABASE = os.getenv("URL_DATABASE")
+assert URL_DATABASE, "URL_DATABASE not found in .env"
+
+engine = create_async_engine(URL_DATABASE)
 
 SessionLocal = sessionmaker(
     bind=engine, autocommit=False, autoflush=True, class_=AsyncSession

@@ -40,7 +40,7 @@ oauth2_bearer = OAuth2PasswordBearer(tokenUrl="api/user/token")
 with open("countries.csv") as f:
     valid_country_codes = {int(line.strip().split(",")[0][-3:]) for line in f}
 
-with open("default_pfp.png", "rb") as f:
+with open("avatars/_default.png", "rb") as f:
     default_pfp = f.read()
 
 
@@ -287,9 +287,10 @@ async def upload_avatar(
 
     try:
         image = Image.open(file_request.file)
-        image_bytes = io.BytesIO()
-        image.resize((256, 256), Image.LANCZOS).save(image_bytes, format="PNG")
-        user.picture = image_bytes.getvalue()
+        image.resize((256, 256), Image.LANCZOS).save(
+            f"avatars/{user.username}.png", format="PNG"
+        )
+        user.picture = True
     except:
         raise HTTPException(500, "Failed to process file")
     finally:
@@ -311,12 +312,17 @@ async def delete_avatar(user: user_dependency, db: db_dependency) -> None:
     Remove profile picture
     """
 
-    user.picture = None
+    if not user.picture:
+        raise HTTPException(404, detail="You do not have a profile picture")
+
+    user.picture = False
 
     try:
+        os.remove(f"avatars/{user.username}.png")
         await db.commit()
-    except:
-        raise HTTPException(500, detail="Failed to remove image from database")
+    except Exception as e:
+        print(e)
+        raise HTTPException(500, detail="Failed to remove image")
 
 
 @router.patch(
@@ -398,14 +404,15 @@ async def get_user_profile(username: str, db: db_dependency):
     responses={200: {"content": {"image/png": {}}}},
     response_class=Response,
 )
-async def get_user_avatar(user: user_dependency):
+async def get_personal_avatar(user: user_dependency):
     """
     Return profile picture of current user
     """
-    if user.picture is None:
+    if not user.picture:
         return Response(content=default_pfp, media_type="image/png")
 
-    return Response(content=user.picture, media_type="image/png")
+    with open(f"avatars/{user.username}.png", "rb") as f:
+        return Response(content=f.read(), media_type="image/png")
 
 
 @router.get(
@@ -426,7 +433,8 @@ async def get_user_avatar(username: str, db: db_dependency):
     if user is None:
         raise HTTPException(404, detail="User does not exist")
 
-    if user.picture is None:
+    if not user.picture:
         return Response(content=default_pfp, media_type="image/png")
 
-    return Response(content=user.picture, media_type="image/png")
+    with open(f"avatars/{username}.png", "rb") as f:
+        return Response(content=f.read(), media_type="image/png")

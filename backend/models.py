@@ -12,7 +12,7 @@ class Users(Base):
     password = Column(String(length=125))
     registration_date = Column(DateTime)
     country = Column(Integer)  # ISO 3166-1 numeric
-    picture = Column(BYTEA)
+    picture = Column(Boolean)
     rating = Column(Integer)
     admin = Column(Boolean, nullable=False, default=False)
     disabled = Column(Boolean, nullable=False, default=False)

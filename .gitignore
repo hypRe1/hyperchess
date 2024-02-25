@@ -9,7 +9,7 @@ __pycache__/
 # database
 *.db
 
-frontend/chess-app/node_modules
+backend/avatars
 
 .DS_Store
 .vscode

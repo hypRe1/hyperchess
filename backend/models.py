@@ -9,7 +9,7 @@ class Users(Base):
     username = Column(String(length=32), primary_key=True)
     email = Column(String(length=255), unique=True)
     about_me = Column(String(length=500))
-    password = Column(String(length=255))
+    password = Column(String(length=125))
     registration_date = Column(DateTime)
     country = Column(Integer)  # ISO 3166-1 numeric
     picture = Column(BYTEA)
@@ -31,9 +31,9 @@ class Mistakes(Base):
     __tablename__ = "mistakes"
 
     id = Column(Integer, primary_key=True)
-    fen = Column(String(length=127))
-    moves = Column(BYTEA)
-    rating = Column(Integer)
+    match_id = Column(Integer, ForeignKey("matches.id"))
+    start = Column(Integer)
+    end = Column(Integer)
 
 
 class Puzzles(Base):
@@ -49,7 +49,7 @@ class ThemeTags(Base):
     __tablename__ = "themes"
 
     id = Column(Integer, primary_key=True)
-    tag_title = Column(String(length=255))
+    name = Column(String(length=255))
 
 
 class Openings(Base):

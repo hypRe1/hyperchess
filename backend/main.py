@@ -36,9 +36,15 @@ for router_file in os.listdir("routers"):
         router = importlib.import_module(path)
         app.include_router(router.router, prefix="/api")
 
-origins = ["http://localhost:3000"]
+origins = ["http://localhost:5173", "http://localhost:4173"]
 
-app.add_middleware(CORSMiddleware, allow_origins=origins)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 if __name__ == "__main__":

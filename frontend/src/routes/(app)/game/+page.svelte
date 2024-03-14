@@ -21,6 +21,9 @@
 			movable: { events: { after: playOtherSide(chessground, chess) } }
 		});
 	});
+
+	import title from '$lib/title';
+	$title = 'Game';
 </script>
 
 <div class="grid grid-cols-2 gap-3">

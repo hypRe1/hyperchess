@@ -1,1 +1,4 @@
-<h1 class="h1">Insights</h1>
+<script lang="ts">
+	import title from '$lib/title';
+	$title = 'Insights';
+</script>

@@ -6,12 +6,12 @@
 		AppRail,
 		AppBar,
 		AppRailAnchor,
-		initializeStores,
 		Modal,
-		getModalStore
+		initializeStores
 	} from '@skeletonlabs/skeleton';
-	import type { ModalSettings, ModalComponent, ModalStore } from '@skeletonlabs/skeleton';
 	initializeStores();
+
+	import title from '$lib/title';
 </script>
 
 <Modal />
@@ -20,12 +20,13 @@
 <AppShell>
 	<svelte:fragment slot="header">
 		<!-- App Bar -->
-		<AppBar>
+		<AppBar gridColumns="grid-cols-3" slotDefault="place-self-center" slotTrail="place-content-end">
 			<svelte:fragment slot="lead">
 				<a href="/">
 					<strong class="text-xl">hyperchess</strong>
 				</a>
 			</svelte:fragment>
+			<span>{$title}</span>
 			<svelte:fragment slot="trail">
 				<span>hypRe</span>
 				<a href="/account">

@@ -67,7 +67,7 @@ async def delete_match(user: user_dependency) -> None:
     if available_matches.get(user.username) is not None:
         del available_matches[user.username]
 
-    elif available_matches.get(user.username) is not None:
+    elif private_matches.get(user.username) is not None:
         del private_matches[user.username]
 
     else:

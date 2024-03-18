@@ -1,0 +1,8 @@
+{
+	"/": [
+		"src/routes/+page.ts"
+	],
+	"/account": [],
+	"/login": [],
+	"/register": []
+}

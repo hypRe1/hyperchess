@@ -36,7 +36,7 @@ for router_file in os.listdir("routers"):
         router = importlib.import_module(path)
         app.include_router(router.router, prefix="/api")
 
-origins = ["http://localhost:5173", "http://localhost:4173"]
+origins = ["http://localhost:5173", "http://localhost:4173", "*"]
 
 app.add_middleware(
     CORSMiddleware,

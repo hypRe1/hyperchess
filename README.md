@@ -1,2 +1,2 @@
 # hyperchess
-Chess website built with react and fast api
+Chess website built with sveltekit and fast api

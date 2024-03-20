@@ -11,6 +11,7 @@
 		type PopupSettings,
 		initializeStores,
 		getDrawerStore,
+		Modal,
 	} from "@skeletonlabs/skeleton";
 	import {
 		computePosition,
@@ -57,6 +58,8 @@
 <Drawer>
 	<Navigation />
 </Drawer>
+
+<Modal />
 
 <Toast position="br" />
 

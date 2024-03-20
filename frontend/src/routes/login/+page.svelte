@@ -1,6 +1,7 @@
 <script lang="ts">
     import { tokenStore } from "$lib/stores";
     import { getToastStore, type ToastSettings } from "@skeletonlabs/skeleton";
+    import { goto } from "$app/navigation";
 
     const toastStore = getToastStore();
 
@@ -60,6 +61,7 @@
             const token = asJson.access_token;
             tokenStore.set(token);
             toastStore.trigger(loginSuccess);
+            goto("/");
         }
     }
 </script>

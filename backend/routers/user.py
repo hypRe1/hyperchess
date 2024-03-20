@@ -287,10 +287,9 @@ async def upload_avatar(
 
     try:
         image = Image.open(file_request.file)
-        image.resize((256, 256), Image.LANCZOS).save(
-            f"avatars/{user.username}.png", format="PNG"
-        )
-        user.picture = True
+        image_bytes = io.BytesIO()
+        image.resize((256, 256), Image.LANCZOS).save(image_bytes, format="PNG")
+        user.picture = image_bytes.getvalue()
     except:
         raise HTTPException(500, "Failed to process file")
     finally:
@@ -315,14 +314,7 @@ async def delete_avatar(user: user_dependency, db: db_dependency) -> None:
     if not user.picture:
         raise HTTPException(404, detail="You do not have a profile picture")
 
-    user.picture = False
-
-    try:
-        os.remove(f"avatars/{user.username}.png")
-        await db.commit()
-    except Exception as e:
-        print(e)
-        raise HTTPException(500, detail="Failed to remove image")
+    user.picture = None
 
 
 @router.patch(
@@ -408,11 +400,10 @@ async def get_personal_avatar(user: user_dependency):
     """
     Return profile picture of current user
     """
-    if not user.picture:
+    if user.picture is None:
         return Response(content=default_pfp, media_type="image/png")
 
-    with open(f"avatars/{user.username}.png", "rb") as f:
-        return Response(content=f.read(), media_type="image/png")
+    return Response(content=user.picture, media_type="image/png")
 
 
 @router.get(
@@ -433,8 +424,7 @@ async def get_user_avatar(username: str, db: db_dependency):
     if user is None:
         raise HTTPException(404, detail="User does not exist")
 
-    if not user.picture:
+    if user.picture is None:
         return Response(content=default_pfp, media_type="image/png")
 
-    with open(f"avatars/{username}.png", "rb") as f:
-        return Response(content=f.read(), media_type="image/png")
+    return Response(content=user.picture, media_type="image/png")

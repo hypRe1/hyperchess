@@ -8,10 +8,11 @@
     }
 
     const pages = {
-        "Home page": "/",
-        Login: "/login",
-        "Test page two": "/?testtwo",
-        "Test page three": "/?testthree",
+        Home: "/",
+        Play: "/play",
+        Train: "/?train",
+        Analysis: "/?analysis",
+        Leaderboard: "/?leaderboard",
     };
 </script>
 

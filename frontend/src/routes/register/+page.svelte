@@ -1,9 +1,15 @@
 <script lang="ts">
     import { tokenStore } from "$lib/stores";
-    import { getToastStore, type ToastSettings } from "@skeletonlabs/skeleton";
+    import {
+        getToastStore,
+        type ToastSettings,
+        getModalStore,
+        type ModalSettings,
+    } from "@skeletonlabs/skeleton";
     import { goto } from "$app/navigation";
 
     const toastStore = getToastStore();
+    const modalStore = getModalStore();
 
     let username: string;
     let email: string;
@@ -12,6 +18,12 @@
 
     const registerSuccess: ToastSettings = {
         message: "Created an account successfully!",
+        background: "variant-filled-success",
+        timeout: 3000,
+    };
+
+    const registerCancelled: ToastSettings = {
+        message: "Cancelled account creation!",
         background: "variant-filled-success",
         timeout: 3000,
     };
@@ -40,7 +52,37 @@
         timeout: 3000,
     };
 
-    async function register(): Promise<void> {
+    const loginFailed: ToastSettings = {
+        message: "Failed to login!",
+        background: "variant-filled-error",
+        timeout: 2000,
+    };
+
+    const loginSuccess: ToastSettings = {
+        message: "Logged in successfully!",
+        background: "variant-filled-success",
+        timeout: 2000,
+    };
+
+    const modal: ModalSettings = {
+        type: "confirm",
+        // Data
+        title: "Please Confirm",
+        body: "Are you sure you wish to proceed? You will not be able to change your username.",
+        // TRUE if confirm pressed, FALSE if cancel pressed
+        response: (r: boolean) => modalResponse(r),
+    };
+
+    async function modalResponse(r: boolean): Promise<void> {
+        console.log(r);
+        if (r) {
+            await register();
+        } else {
+            toastStore.trigger(registerCancelled);
+        }
+    }
+
+    async function registerConfirmation(): Promise<void> {
         if ($tokenStore !== "" && $tokenStore !== null) {
             toastStore.trigger(alreadyLoggedIn);
             return;
@@ -51,6 +93,10 @@
             return;
         }
 
+        modalStore.trigger(modal);
+    }
+
+    async function register(): Promise<void> {
         const response = await fetch("http://127.0.0.1:8000/api/user/", {
             method: "POST",
             body: `username=${username}&email=${email}&password=${password}`,
@@ -70,7 +116,35 @@
         }
 
         toastStore.trigger(registerSuccess);
-        goto("/login");
+
+        const loginResponse = await fetch(
+            "http://127.0.0.1:8000/api/user/token",
+            {
+                method: "POST",
+                body: `grant_type=&username=${username}&password=${password}&scope=&client_id=&client_secret=`,
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+            },
+        );
+
+        if (loginResponse.status == 429) {
+            toastStore.trigger(tooManyRequests);
+            return;
+        }
+
+        if (!loginResponse.ok) {
+            toastStore.trigger(loginFailed);
+            return;
+        }
+
+        if (loginResponse.body !== null) {
+            const asJson = await loginResponse.json();
+            const token = asJson.access_token;
+            tokenStore.set(token);
+            toastStore.trigger(loginSuccess);
+            goto("/");
+        }
     }
 </script>
 
@@ -125,7 +199,7 @@
         />
         <button
             type="button"
-            on:click={register}
+            on:click={registerConfirmation}
             class="btn variant-ghost-primary self-start">Confirm</button
         >
     </form>

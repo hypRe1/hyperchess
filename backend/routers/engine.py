@@ -16,13 +16,13 @@ engine_locs = {
 }
 
 # lc0 installed through homebrew
-engine_locs["Lc0"] = "lc0"
+# engine_locs["Lc0"] = "lc0"
 
-WEIGHTS_LOC = os.getenv("WEIGHTS_LOC")
-assert WEIGHTS_LOC, "WEIGHTS_LOC not found in .env"
+# WEIGHTS_LOC = os.getenv("WEIGHTS_LOC")
+# assert WEIGHTS_LOC, "WEIGHTS_LOC not found in .env"
 
-for file in os.listdir(WEIGHTS_LOC):
-    engine_locs[f"Lc0 - {file}"] = f"lc0 --weights {os.path.join(ENGINES_LOC, file)}"
+# for file in os.listdir(WEIGHTS_LOC):
+#     engine_locs[f"Lc0 - {file}"] = f"lc0 --weights {os.path.join(ENGINES_LOC, file)}"
 
 
 class BestMoveRequest(BaseModel):
@@ -47,12 +47,7 @@ class BestMoveRequest(BaseModel):
 
 @router.post("/", status_code=200)
 async def best_move(best_move_request: BestMoveRequest):
-    _, engine = await chess.engine.popen_uci(
-        best_move_request.engine,
-        popen_args={
-            "weights": "/Users/James/Desktop/NEA/hyperchess/hyperchess/backend/engines/maia-1500.pb"
-        },
-    )
+    _, engine = await chess.engine.popen_uci(best_move_request.engine)
     result = await engine.play(
         best_move_request.board, chess.engine.Limit(depth=best_move_request.depth)
     )

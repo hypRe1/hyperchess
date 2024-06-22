@@ -1,9 +1,9 @@
 import os
-from enum import StrEnum
 
 import chess
 import chess.engine
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from fastapi_limiter.depends import RateLimiter
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 
 router = APIRouter(prefix="/engine")
@@ -45,8 +45,15 @@ class BestMoveRequest(BaseModel):
         return chess.Board(self.fen)
 
 
-@router.post("/", status_code=200)
+@router.post(
+    "/",
+    status_code=200,
+    dependencies=[Depends(RateLimiter(times=3, seconds=1))],
+)
 async def best_move(best_move_request: BestMoveRequest):
+    """
+    Return uci string for top engine move given position, the engine and depth
+    """
     _, engine = await chess.engine.popen_uci(best_move_request.engine)
     result = await engine.play(
         best_move_request.board, chess.engine.Limit(depth=best_move_request.depth)
@@ -55,6 +62,13 @@ async def best_move(best_move_request: BestMoveRequest):
     return result.move.uci()
 
 
-@router.get("/available", status_code=200)
+@router.get(
+    "/available",
+    status_code=200,
+    dependencies=[Depends(RateLimiter(times=3, seconds=1))],
+)
 async def available_engines():
+    """
+    Returns tuple of available engines
+    """
     return tuple(engine_locs.keys())

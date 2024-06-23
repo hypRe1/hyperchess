@@ -1,45 +1,20 @@
 <script lang="ts">
     import { Chessground } from "svelte-chessground";
-    import { Chess, type Move } from "chess.js";
+    import { Chess } from "chess.js";
     import { onMount } from "svelte";
-    import { legalMoves, makeEngineMove } from "$lib/util";
+    import { legalMoves } from "$lib/util";
     import "$lib/board-themes/base.css";
-    import "$lib/board-themes/pieces.css";
-    import "$lib/board-themes/board.css";
-    export let depth: number;
-    export let engine: string;
+    import "$lib/board-themes/custom.css";
+    export let piece: string;
+    export let board: string;
+    export let config;
 
-    let chess = new Chess();
-    let chessground: Chessground;
+    export let chess = new Chess();
+    export let chessground: Chessground;
     let assigned: boolean = false;
-
-    let config = {
-        animation: {
-            enabled: true,
-            duration: 300,
-        },
-
-        movable: {
-            color: "white",
-            free: false,
-            dests: legalMoves(chess),
-            showDests: true,
-        },
-        highlight: {
-            check: true,
-        },
-        coordinates: true,
-    };
 
     onMount(async () => {
         assigned = true;
-        chessground.set({
-            movable: {
-                events: {
-                    after: makeEngineMove(chessground, chess, depth, engine),
-                },
-            },
-        });
     });
 
     export function undo() {
@@ -69,12 +44,6 @@
         }
         return;
     }
-
-    // export function history(): Move[] | undefined {
-    //     if (assigned) {
-    //         return chess.history({ verbose: true });
-    //     }
-    // }
 
     export function flipBoard() {
         if (assigned) {
@@ -116,27 +85,10 @@
             });
         }
     }
-
-    $: {
-        if (assigned) {
-            chessground.set({
-                movable: {
-                    events: {
-                        after: makeEngineMove(
-                            chessground,
-                            chess,
-                            depth,
-                            engine,
-                        ),
-                    },
-                },
-            });
-        }
-    }
 </script>
 
 <Chessground
-    class="cg-base cg-pieces cg-board"
+    class="cg-base piece-{piece} board-{board}"
     bind:this={chessground}
     {config}
 />

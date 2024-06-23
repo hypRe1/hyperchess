@@ -130,7 +130,7 @@
 	<!-- <svelte:fragment slot="sidebarRight">Sidebar Right</svelte:fragment> -->
 	<!-- <svelte:fragment slot="pageHeader">Page Header</svelte:fragment> -->
 	<!-- Router Slot -->
-	<div class="container p-10 mx-auto">
+	<div class="container p-5 mx-auto">
 		<slot />
 	</div>
 	<!-- ---- / ---- -->

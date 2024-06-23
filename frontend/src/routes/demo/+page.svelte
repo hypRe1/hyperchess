@@ -1,24 +1,96 @@
 <script lang="ts">
-    import ChessBoard from "$lib/components/ChessBoard.svelte";
     import { Avatar } from "@skeletonlabs/skeleton";
-    import { type Move } from "chess.js";
     import { page } from "$app/stores";
     import { title } from "$lib/store";
     import type { PageData } from "./$types";
+    import VsEngineCg from "$lib/components/vsEngineCG.svelte";
 
     export let data: PageData;
 
     title.set("Play vs hyperfish");
 
-    let engine: String = "hyperfish";
+    let engine: string = "hyperfish";
     let depth: number = 5;
+
+    let pieces: string[] = [
+        "alpha",
+        "anarcandy",
+        "caliente",
+        "california",
+        "cardinal",
+        "cburnett",
+        "celtic",
+        "chess7",
+        "chessnut",
+        "companion",
+        "cooke",
+        "disguised",
+        "dubrovny",
+        "eyes",
+        "fantasy",
+        "freak",
+        "fresca",
+        "gioco",
+        "governor",
+        "horsey",
+        "icpieces",
+        "kiwen-suwi",
+        "kosal",
+        "leipzig",
+        "letter",
+        "libra",
+        "neo",
+        "maestro",
+        "merida",
+        "mpchess",
+        "pirouetti",
+        "pixel",
+        "prmi",
+        "reillycraig",
+        "riohacha",
+        "shapes",
+        "skulls",
+        "spatial",
+        "staunty",
+        "tatiana",
+    ];
+
+    let boards: string[] = [
+        "blue-marble",
+        "blue2",
+        "blue3",
+        "canvas2",
+        "green-plastic",
+        "grey",
+        "horsey",
+        "leather",
+        "maple",
+        "maple2",
+        "marble",
+        "metal",
+        "ncf-board",
+        "olive",
+        "pink-pyramid",
+        "purple-diag",
+        "wood2",
+        "wood3",
+        "wood4",
+        "blue",
+        "brown",
+        "green",
+        "ic",
+        "newspaper",
+        "purple",
+    ];
+
+    let piece = "staunty";
+    let board = "blue";
     let fen: string =
         "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     let undo: () => void;
     let flipBoard: () => void;
     let reset: () => void;
     let load_fen: (fen: string) => void;
-    // let history: () => Move[] | undefined;
 
     function engineChange() {
         if (depth > 8 && engine == "hyperfish") {
@@ -31,35 +103,38 @@
     }
 </script>
 
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-    <div class="size-11/12">
-        <div class="p-4 flex flex-row gap-3">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+    <div>
+        <div class="p-1 flex flex-row gap-2">
             <Avatar
-                src="https://static-00.iconduck.com/assets.00/fish-icon-1982x2048-xxayvvtg.png"
-                width="w-14"
+                src="https://cdn-icons-png.flaticon.com/512/1250/1250593.png"
+                width="w-12"
                 rounded="rounded-full"
             />
             <div>
-                <h4 class="h4">{engine}</h4>
+                <h5 class="h5">{engine}</h5>
                 <p>The powerful chess engine</p>
             </div>
         </div>
-        <ChessBoard
+        <VsEngineCg
             bind:depth
             bind:engine
+            bind:piece
+            bind:board
             bind:undo
             bind:flipBoard
             bind:reset
             bind:load_fen
-        ></ChessBoard>
-        <div class="p-4 flex flex-row gap-3">
+        ></VsEngineCg>
+
+        <div class="p-2 flex flex-row gap-2">
             <Avatar
                 src={$page.data.avatar}
-                width="w-14"
+                width="w-12"
                 rounded="rounded-full"
             />
             <div>
-                <h4 class="h4">{$page.data.username}</h4>
+                <h5 class="h5">{$page.data.username}</h5>
                 <p>{$page.data.about_me}</p>
             </div>
         </div>
@@ -89,9 +164,6 @@
                     bind:value={depth}
                 />
             </label>
-            <!-- <p>
-                {history()}
-            </p> -->
             <button
                 on:click={undo}
                 type="button"
@@ -117,6 +189,25 @@
                         class="btn variant-ghost self-start">Load fen</button
                     >
                 </div>
+            </label>
+            <label class="label">
+                <span>Piece</span>
+
+                <select class="select" name="pieceInput" bind:value={piece}>
+                    {#each pieces as p}
+                        <option value={p}>{p}</option>
+                    {/each}
+                </select>
+            </label>
+
+            <label class="label">
+                <span>Board</span>
+
+                <select class="select" name="boardInput" bind:value={board}>
+                    {#each boards as b}
+                        <option value={b}>{b}</option>
+                    {/each}
+                </select>
             </label>
         </div>
     </div>

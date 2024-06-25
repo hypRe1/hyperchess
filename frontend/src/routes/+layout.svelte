@@ -55,8 +55,6 @@
 	}
 
 	export let data: PageData;
-
-	console.log("hyperchess :)");
 </script>
 
 <Drawer>

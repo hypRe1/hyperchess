@@ -74,8 +74,6 @@
                 timeout: 2000,
             });
         } else {
-            console.log(await resp.text());
-
             toastStore.trigger({
                 message: "Failed to update account info!",
                 background: "variant-filled-success",

@@ -1,6 +1,8 @@
 from database import Base
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Table
 from sqlalchemy.dialects.postgresql import BYTEA
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.schema import ForeignKey
 
 
 class Users(Base):
@@ -16,6 +18,18 @@ class Users(Base):
     rating = Column(Integer)
     admin = Column(Boolean, nullable=False, default=False)
     disabled = Column(Boolean, nullable=False, default=False)
+    appearance: Mapped["Appearance"] = relationship(back_populates="users")
+
+
+class Appearance(Base):
+    __tablename__ = "appearance"
+
+    username = mapped_column(ForeignKey("users.username"), primary_key=True)
+    board = Column(String(length=32), nullable=False, default="blue")
+    piece = Column(String(length=32), nullable=False, default="staunty")
+    theme = Column(String(length=32), nullable=False, default="skeleton")
+    dark = Column(Boolean, nullable=False, default=True)
+    users: Mapped["Users"] = relationship(back_populates="appearance")
 
 
 class Matches(Base):

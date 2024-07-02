@@ -12,7 +12,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi_limiter.depends import RateLimiter
 from jose import ExpiredSignatureError, JWTError, jwt
 from jose.constants import ALGORITHMS
-from models import Users
+from models import Appearance, Users
 from passlib.context import CryptContext
 from PIL import Image
 from pydantic import BaseModel, EmailStr, Field
@@ -233,7 +233,10 @@ async def create_user(
         registration_date=datetime.now(),
     )
 
+    create_appearance_model = Appearance(username=form_data.username)
+
     db.add(create_user_model)
+    db.add(create_appearance_model)
     try:
         await db.commit()
     except:
@@ -278,6 +281,7 @@ async def delete_user(
         raise HTTPException(400, detail="Incorrect password")
 
     await db.delete(user)
+    await db.execute("DELETE appearance WHERE username = ?", (user.username,))
 
     try:
         await db.commit()

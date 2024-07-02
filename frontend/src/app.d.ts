@@ -4,6 +4,11 @@
 declare namespace App {
 	interface Locals {
 		loggedIn: boolean
+		theme: string
+		dark: boolean
+		board: string
+		piece: string
+
 	}
 	// interface PageData {}
 	// interface Error {}

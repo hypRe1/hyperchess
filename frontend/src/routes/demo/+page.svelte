@@ -83,8 +83,8 @@
         "purple",
     ];
 
-    let piece = "staunty";
-    let board = "blue";
+    let piece = data.piece;
+    let board = data.board;
     let fen: string =
         "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     let undo: () => void;

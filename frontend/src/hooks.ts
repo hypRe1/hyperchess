@@ -13,6 +13,27 @@ function redirect(location: string, body?: string) {
     });
 }
 
+
+async function get_appearance(token: string | undefined) {
+    if (!token) {
+        return {
+            "theme": "skeleton",
+            "board": "blue",
+            "piece": "staunty",
+            "dark": true
+        }
+    }
+
+    const resp = await fetch("http://127.0.0.1:8000/api/appearance", {
+        method: "GET",
+        headers: {
+            accept: 'application/json',
+            "Authorization": `Bearer ${token}`
+        }
+    })
+    return await resp.json();
+}
+
 export const handleFetch: HandleFetch = async ({ event, request, fetch }) => {
     const token = event.cookies.get('token');
     if (request.url.startsWith('http://127.0.0.1:8000/api/') && token) {
@@ -31,5 +52,13 @@ export const handle: Handle = async ({ event, resolve }) => {
     if (token) {
         event.locals.loggedIn = true
     }
-    return await resolve(event)
+    const appearance = await get_appearance(token);
+    event.locals.board = appearance.board;
+    event.locals.piece = appearance.piece;
+    event.locals.theme = appearance.theme;
+    event.locals.dark = appearance.dark;
+
+    return await resolve(event, {
+        transformPageChunk: ({ html }) => html.replace('%theme%', appearance.theme).replace("%dark%", appearance.dark ? "dark" : "")
+    })
 };

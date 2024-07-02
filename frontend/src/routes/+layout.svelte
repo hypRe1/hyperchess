@@ -34,6 +34,7 @@
 
 	const accountPopupLinks = {
 		Account: "/account",
+		Appearance: "/appearance",
 		Matches: "/matches",
 	};
 

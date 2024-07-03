@@ -1,6 +1,5 @@
 import os
 from enum import StrEnum
-from typing import Literal
 
 from database import db_dependency
 from fastapi import APIRouter, HTTPException

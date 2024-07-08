@@ -30,6 +30,9 @@
 		event: "click",
 		target: "accountPopup",
 		placement: "bottom",
+		middleware: {
+			offset: 24,
+		},
 	};
 
 	const accountPopupLinks = {
@@ -71,7 +74,6 @@
 </svelte:head>
 
 <nav class="card p-4 list-nav" data-popup="accountPopup">
-	<div class="arrow variant-filled" />
 	<ul>
 		{#each Object.entries(accountPopupLinks) as [title, url]}
 			<li><a href={url}>{title}</a></li>
@@ -85,6 +87,7 @@
 			>
 		</li>
 	</ul>
+	<div class="arrow bg-surface-100-800-token" />
 </nav>
 
 <AppShell slotSidebarLeft="w-0 md:w-52 bg-surface-500/10">

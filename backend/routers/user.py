@@ -48,7 +48,7 @@ with open("countries.csv") as f:
 
 with open("default_avatar.png", "rb") as f:
     default_pfp = f.read()
-default_pfp_b64 = base64.b64encode(default_pfp)
+default_pfp_b64 = "data:image/png;base64, " + base64.b64encode(default_pfp).decode()
 
 
 class SignupForm(OAuth2PasswordRequestForm):
@@ -119,6 +119,7 @@ invalid_auth = HTTPException(
 
 async def get_user(username: str, db: db_dependency) -> Users:
     statement = select(Users).where(Users.username == username)
+    print(statement)
     result = await db.execute(statement)
     user = result.scalar_one_or_none()
 
@@ -137,8 +138,8 @@ async def get_current_user(
 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: int = payload.get("sub")
-        if username is None:
+        username = payload.get("sub")
+        if not isinstance(username, str):
             raise invalid_auth
 
     except ExpiredSignatureError:
@@ -193,6 +194,14 @@ async def user_identifer(request: Request | WebSocket) -> str:
     if forwarded:
         return forwarded.split(",")[0]
     return request.client.host + ":" + request.scope["path"]
+
+
+def user_picture_B64(picture: bytes):
+    return (
+        default_pfp_b64
+        if picture is None
+        else "data:image/png;base64, " + base64.b64encode(picture).decode()
+    )
 
 
 @router.post(
@@ -400,9 +409,7 @@ async def get_personal_profile(user: user_dependency):
     """
     return PersonalUserResponse(
         username=user.username,
-        avatar=(
-            default_pfp_b64 if user.picture is None else base64.b64encode(user.picture)
-        ),
+        avatar=user_picture_B64(user.picture),
         email=user.email,
         about_me=user.about_me,
         rating=user.rating,
@@ -430,9 +437,7 @@ async def get_user_profile(username: str, db: db_dependency):
 
     return PublicUserResponse(
         username=user.username,
-        avatar=(
-            default_pfp_b64 if user.picture is None else base64.b64encode(user.picture)
-        ),
+        avatar=user_picture_B64(user.picture),
         about_me=user.about_me,
         rating=user.rating,
         country=user.country,

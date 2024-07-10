@@ -19,7 +19,7 @@ export const load: PageServerLoad = async ({ fetch }) => {
     }
 
     let userData: profile = await profileResponse.json();
-    userData.avatar = "data:image/png;base64, " + userData.avatar
+    userData.avatar = userData.avatar
 
     const countriesResponse = await fetch("http://127.0.0.1:8000/api/user/countries", {
         method: "GET",

@@ -15,7 +15,7 @@ export const load: LayoutServerLoad = async ({ fetch, locals }) => {
             loggedIn: true,
             username: profile.username,
             about_me: profile.about_me,
-            avatar: "data:image/png;base64, " + profile.avatar
+            avatar: profile.avatar
         }
     } else {
         return {

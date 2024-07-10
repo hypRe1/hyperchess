@@ -119,7 +119,6 @@ invalid_auth = HTTPException(
 
 async def get_user(username: str, db: db_dependency) -> Users:
     statement = select(Users).where(Users.username == username)
-    print(statement)
     result = await db.execute(statement)
     user = result.scalar_one_or_none()
 

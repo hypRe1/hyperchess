@@ -25,7 +25,7 @@ class Themes(StrEnum):
     HYPERTHEME = "hypertheme"
 
 
-BOARD_THEMES_PATH = "../frontend/src/lib/board-themes/"
+BOARD_THEMES_PATH = "../frontend/static/"
 
 board_files = []
 for f in os.listdir(BOARD_THEMES_PATH + "board"):

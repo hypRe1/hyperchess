@@ -39,11 +39,6 @@ class BestMoveRequest(BaseModel):
             raise ValueError(f"Engine '{engine}' not available")
         return engine_loc
 
-    @computed_field
-    @property
-    def board(self) -> chess.Board:
-        return chess.Board(self.fen)
-
 
 @router.post(
     "/",
@@ -56,7 +51,8 @@ async def best_move(best_move_request: BestMoveRequest):
     """
     _, engine = await chess.engine.popen_uci(best_move_request.engine)
     result = await engine.play(
-        best_move_request.board, chess.engine.Limit(depth=best_move_request.depth)
+        chess.Board(best_move_request.fen),
+        chess.engine.Limit(depth=best_move_request.depth),
     )
     await engine.quit()
     return result.move.uci()

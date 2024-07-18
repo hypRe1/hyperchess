@@ -1,6 +1,11 @@
 <script lang="ts">
     import { Avatar } from "@skeletonlabs/skeleton";
     import { page } from "$app/stores";
+    import { browser } from "$app/environment";
+    import FullScreenModal from "$lib/modals/fullScreen.svelte";
+    import { getModalStore, type ModalSettings } from "@skeletonlabs/skeleton";
+
+    const modalStore = getModalStore();
 
     enum msgType {
         SERVER,
@@ -20,72 +25,84 @@
     let users = 0;
     let currentMessage = "";
     let elemChat: HTMLElement;
+    let ws: WebSocket;
 
-    let ws = new WebSocket(`ws://127.0.0.1:8000/api/chat/ws`);
+    if (browser) {
+        ws = new WebSocket(`ws://127.0.0.1:8000/api/chat/ws`);
 
-    ws.onopen = function (event) {
-        ws.send($page.data.token);
-        console.log("Joined chat room");
-    };
+        ws.onopen = function (event) {
+            ws.send($page.data.token);
+            console.log("Joined chat room");
+        };
 
-    function scrollChatBottom(behavior?: ScrollBehavior): void {
-        elemChat.scrollTo({ top: elemChat.scrollHeight, behavior });
-    }
-
-    function getTime(): string {
-        let t = new Date();
-        return `${`0${t.getHours()}`.slice(-2)}:${`0${t.getMinutes()}`.slice(-2)}:${`0${t.getSeconds()}`.slice(-2)}`;
-    }
-
-    function addMsg(msg: Message): void {
-        messages = [...messages, msg];
-        setTimeout(() => {
-            scrollChatBottom("smooth");
-        }, 0);
-    }
-
-    ws.onmessage = function (event) {
-        const msg = JSON.parse(event.data);
-
-        if (msg[0] == "joinRoom") {
-            addMsg({
-                username: "Server",
-                avatar: msg[1]["avatar"],
-                content: `${msg[1]["username"]} joined the chat room`,
-                type: msgType.SERVER,
-                time: getTime(),
-            });
-        } else if (msg[0] == "leaveRoom") {
-            addMsg({
-                username: "Server",
-                avatar: msg[1]["avatar"],
-                content: `${msg[1]["username"]} left the chat room`,
-                type: msgType.SERVER,
-                time: getTime(),
-            });
-        } else if (msg[0] == "serverMessage") {
-            addMsg({
-                username: "Server",
-                avatar: $page.data.avatar,
-                content: msg[1]["content"],
-                type: msgType.SERVER,
-                time: getTime(),
-            });
-        } else if (msg[0] == "sendMessage") {
-            addMsg({
-                username: msg[1]["username"],
-                avatar: msg[1]["avatar"],
-                content: msg[1]["content"],
-                type:
-                    msg[1]["username"] == $page.data.username
-                        ? msgType.HOST
-                        : msgType.PEER,
-                time: getTime(),
-            });
-        } else if (msg[0] == "roomData") {
-            users = msg[1]["users"];
+        function scrollChatBottom(behavior?: ScrollBehavior): void {
+            elemChat.scrollTo({ top: elemChat.scrollHeight, behavior });
         }
-    };
+
+        function getTime(): string {
+            let t = new Date();
+            return `${`0${t.getHours()}`.slice(-2)}:${`0${t.getMinutes()}`.slice(-2)}:${`0${t.getSeconds()}`.slice(-2)}`;
+        }
+
+        function addMsg(msg: Message): void {
+            messages = [...messages, msg];
+            setTimeout(() => {
+                scrollChatBottom("smooth");
+            }, 0);
+        }
+
+        ws.onmessage = function (event) {
+            const msg = JSON.parse(event.data);
+            let cmd = msg[0];
+            let msgData = msg[1];
+
+            switch (cmd) {
+                case "joinRoom":
+                    addMsg({
+                        username: "Server",
+                        avatar: msgData["avatar"],
+                        content: `${msgData["username"]} joined the chat room`,
+                        type: msgType.SERVER,
+                        time: getTime(),
+                    });
+                    break;
+                case "leaveRoom":
+                    addMsg({
+                        username: "Server",
+                        avatar: msgData["avatar"],
+                        content: `${msgData["username"]} left the chat room`,
+                        type: msgType.SERVER,
+                        time: getTime(),
+                    });
+                    break;
+                case "disconnected":
+                    const modal: ModalSettings = {
+                        type: "component",
+                        component: { ref: FullScreenModal },
+                        title: "Disconnected",
+                        body: msgData["details"],
+                        backdropClasses: "!p-0",
+                    };
+                    modalStore.trigger(modal);
+                    break;
+                case "sendMessage":
+                    addMsg({
+                        username: msgData["username"],
+                        avatar: msgData["avatar"],
+                        content: msgData["content"],
+                        type:
+                            msgData["username"] == $page.data.username
+                                ? msgType.HOST
+                                : msgType.PEER,
+                        time: getTime(),
+                    });
+                    break;
+                case "roomData":
+                    users = msgData["users"];
+                    break;
+            }
+        };
+    }
 
     function send_message() {
         if (currentMessage.replace(/\s/g, "").length) {

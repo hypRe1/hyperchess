@@ -8,6 +8,7 @@ from database import Base, engine
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_limiter import FastAPILimiter
+from pydantic2ts import generate_typescript_defs
 
 
 @asynccontextmanager
@@ -33,8 +34,19 @@ for router_file in os.listdir("routers"):
     filename = os.fsdecode(router_file)
     if filename.endswith(".py"):
         path = "routers." + filename[:-3]
+        generate_typescript_defs(
+            path, f"../frontend/src/lib/types/{filename[:-3]}Types.ts"
+        )
         router = importlib.import_module(path)
         app.include_router(router.router, prefix="/api")
+
+for util_file in os.listdir("util"):
+    filename = os.fsdecode(util_file)
+    if filename.endswith(".py"):
+        path = "util." + filename[:-3]
+        generate_typescript_defs(
+            path, f"../frontend/src/lib/types/{filename[:-3]}Types.ts"
+        )
 
 origins = ["http://localhost:5173", "http://localhost:4173", "*"]
 

@@ -1,7 +1,13 @@
 import json
 
-from database import AsyncSession, SessionLocal, get_db
-from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
+from database import SessionLocal, get_db
+from fastapi import (
+    APIRouter,
+    HTTPException,
+    WebSocket,
+    WebSocketDisconnect,
+    WebSocketException,
+)
 from routers.user import get_current_user, user_picture_B64
 from websockets.frames import CloseCode
 
@@ -37,12 +43,12 @@ class ConnectionManager:
         con = self.active_connections.get(username)
         if con is not None:
             await con.send_json(
-                ["serverMessage", {"content": "Logged in from elsewhere"}]
+                ["disconnected", {"details": "Logged in from elsewhere"}]
             )
             await con.close(CloseCode.INTERNAL_ERROR, "logged in from elsewhere")
         self.active_connections[username] = websocket
 
-        await manager.broadcast(
+        await self.broadcast(
             json.dumps(["joinRoom", {"username": username, "avatar": avatar}])
         )
         await self.send_room_data(websocket)
@@ -58,7 +64,9 @@ class ConnectionManager:
     async def send_personal_message(self, username: str, message: str):
         ws = self.active_connections.get(username)
         if ws is None:
-            raise HTTPException(404, f"Connection with username {username} not found")
+            raise WebSocketException(
+                404, f"Connection with username {username} not found"
+            )
         await ws.send_text(message)
 
     async def broadcast(self, message: str):

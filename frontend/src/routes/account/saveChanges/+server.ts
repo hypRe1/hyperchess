@@ -6,6 +6,7 @@ export const PATCH: RequestHandler = async ({ fetch, request }) => {
         headers: {
             accept: "application/json",
         },
+        // @ts-ignore
         duplex: "half",
         body: request.body
     });

@@ -22,6 +22,7 @@
 		arrow,
 	} from "@floating-ui/dom";
 	import { title } from "$lib/store";
+	import { browser } from "$app/environment";
 
 	import { storePopup } from "@skeletonlabs/skeleton";
 	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
@@ -59,6 +60,16 @@
 	}
 
 	export let data: PageData;
+
+	$: {
+		if (browser) {
+			data.dark
+				? document.documentElement.classList.add("dark")
+				: document.documentElement.classList.remove("dark");
+
+			document.body.setAttribute("data-theme", data.theme);
+		}
+	}
 </script>
 
 <Drawer>

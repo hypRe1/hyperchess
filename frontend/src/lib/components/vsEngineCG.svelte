@@ -4,8 +4,6 @@
     import { Chess } from "chess.js";
     import { onMount } from "svelte";
     import { legalMoves, makeEngineMove } from "$lib/util";
-    import "$lib/board-themes/base.css";
-    import "$lib/board-themes/custom.css";
 
     export let depth: number;
     export let engine: string;

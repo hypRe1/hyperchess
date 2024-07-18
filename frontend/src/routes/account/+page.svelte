@@ -33,9 +33,10 @@
     function onImageUpload() {
         let file = files[0];
         let reader = new FileReader();
-        avatar = reader.result;
         reader.onloadend = function () {
-            avatar = reader.result;
+            if (typeof reader.result === "string") {
+                avatar = reader.result;
+            }
         };
         reader.readAsDataURL(file);
     }
@@ -44,7 +45,7 @@
         const resp = await fetch(
             "http://127.0.0.1:8000/api/user/default_avatar",
         );
-        avatar = "data:image/png;base64, " + (await resp.text()).slice(1, -1);
+        avatar = await resp.json();
     }
 
     async function saveChanges() {
@@ -113,7 +114,7 @@
                     <button type="button">
                         <FileButton
                             bind:files
-                            on:change={onImageUpload}
+                            on:change{onImageUpload}
                             name="files"
                             accept="image/png, image/jpeg"
                             button="btn variant-filled-secondary"

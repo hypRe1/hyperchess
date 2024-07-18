@@ -1,10 +1,11 @@
 <script lang="ts">
     import { enhance } from "$app/forms";
     import { tick } from "svelte";
-    import { goto } from "$app/navigation";
+    import { goto, invalidate, invalidateAll } from "$app/navigation";
     import type { ActionData } from "./$types";
     import { getToastStore } from "@skeletonlabs/skeleton";
     import { title } from "$lib/store";
+    import { redirect } from "@sveltejs/kit";
 
     title.set("Login");
 
@@ -32,7 +33,10 @@
                     background: "variant-filled-success",
                     timeout: 2000,
                 });
-                goto("/");
+                await goto("/", {
+                    replaceState: true,
+                    invalidateAll: true,
+                });
             }
         };
     }}

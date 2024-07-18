@@ -9,7 +9,7 @@
 
     const pages = {
         Home: "/",
-        Play: "/?play",
+        Play: "/play",
         Train: "/?train",
         Analysis: "/?analysis",
         Leaderboard: "/?leaderboard",
@@ -19,7 +19,11 @@
 <nav class="list-nav p-4">
     <ul>
         {#each Object.entries(pages) as [title, url]}
-            <li><a href={url} on:click={drawerClose}>{title}</a></li>
+            <li>
+                <a href={url} data-sveltekit-preload-data on:click={drawerClose}
+                    >{title}</a
+                >
+            </li>
         {/each}
     </ul>
 </nav>

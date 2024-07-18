@@ -1,6 +1,5 @@
 <script lang="ts">
     import { Avatar } from "@skeletonlabs/skeleton";
-    import { page } from "$app/stores";
     import { title } from "$lib/store";
     import type { PageData } from "./$types";
     import VsEngineCg from "$lib/components/vsEngineCG.svelte";
@@ -12,76 +11,8 @@
     let engine: string = "hyperfish";
     let depth: number = 5;
 
-    let pieces: string[] = [
-        "alpha",
-        "anarcandy",
-        "caliente",
-        "california",
-        "cardinal",
-        "cburnett",
-        "celtic",
-        "chess7",
-        "chessnut",
-        "companion",
-        "cooke",
-        "disguised",
-        "dubrovny",
-        "eyes",
-        "fantasy",
-        "freak",
-        "fresca",
-        "gioco",
-        "governor",
-        "horsey",
-        "icpieces",
-        "kiwen-suwi",
-        "kosal",
-        "leipzig",
-        "letter",
-        "libra",
-        "neo",
-        "maestro",
-        "merida",
-        "mpchess",
-        "pirouetti",
-        "pixel",
-        "prmi",
-        "reillycraig",
-        "riohacha",
-        "shapes",
-        "skulls",
-        "spatial",
-        "staunty",
-        "tatiana",
-    ];
-
-    let boards: string[] = [
-        "blue-marble",
-        "blue2",
-        "blue3",
-        "canvas2",
-        "green-plastic",
-        "grey",
-        "horsey",
-        "leather",
-        "maple",
-        "maple2",
-        "marble",
-        "metal",
-        "ncf-board",
-        "olive",
-        "pink-pyramid",
-        "purple-diag",
-        "wood2",
-        "wood3",
-        "wood4",
-        "blue",
-        "brown",
-        "green",
-        "ic",
-        "newspaper",
-        "purple",
-    ];
+    let pieces: string[] = data.pieces;
+    let boards: string[] = data.boards;
 
     let piece = data.piece;
     let board = data.board;
@@ -128,14 +59,10 @@
         ></VsEngineCg>
 
         <div class="p-2 flex flex-row gap-2">
-            <Avatar
-                src={$page.data.avatar}
-                width="w-12"
-                rounded="rounded-full"
-            />
+            <Avatar src={data.avatar} width="w-12" rounded="rounded-full" />
             <div>
-                <h5 class="h5">{$page.data.username}</h5>
-                <p>{$page.data.about_me}</p>
+                <h5 class="h5">{data.username}</h5>
+                <p>{data.about_me}</p>
             </div>
         </div>
     </div>

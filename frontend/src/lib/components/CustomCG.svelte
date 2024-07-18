@@ -3,11 +3,11 @@
     import { Chess } from "chess.js";
     import { onMount } from "svelte";
     import { legalMoves } from "$lib/util";
-    import "$lib/board-themes/base.css";
-    import "$lib/board-themes/custom.css";
     export let piece: string;
     export let board: string;
     export let config;
+    import "$lib/board-themes/base.css";
+    import "$lib/board-themes/custom.css";
 
     export let chess = new Chess();
     export let chessground: Chessground;

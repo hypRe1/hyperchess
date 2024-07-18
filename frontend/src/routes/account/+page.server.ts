@@ -1,4 +1,5 @@
 import type { PageServerLoad } from './$types';
+import type { PersonalUserResponse, CountryResponse } from '$lib/types/userTypes';
 
 export const load: PageServerLoad = async ({ fetch }) => {
     const profileResponse = await fetch("http://127.0.0.1:8000/api/user/profile", {
@@ -8,17 +9,7 @@ export const load: PageServerLoad = async ({ fetch }) => {
         }
     })
 
-    interface profile {
-        username: string;
-        avatar: any;
-        email: string;
-        about_me: string | null;
-        rating: number;
-        country: string;
-        registration_date: string;
-    }
-
-    let userData: profile = await profileResponse.json();
+    let userData: PersonalUserResponse = await profileResponse.json();
     userData.avatar = userData.avatar
 
     const countriesResponse = await fetch("http://127.0.0.1:8000/api/user/countries", {
@@ -28,13 +19,7 @@ export const load: PageServerLoad = async ({ fetch }) => {
         }
     })
 
-    interface country {
-        name: string;
-        emoji: string;
-        image: string;
-    }
-
-    let countriesData: { [code: string]: country; } = await countriesResponse.json()
+    let countriesData: CountryResponse = await countriesResponse.json()
 
     return {
         user: userData,

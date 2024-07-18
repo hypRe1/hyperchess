@@ -1,22 +1,25 @@
 <script lang="ts">
-    import { page } from "$app/stores";
     import { SlideToggle } from "@skeletonlabs/skeleton";
     import PreviewCg from "$lib/components/previewCG.svelte";
     import { getToastStore } from "@skeletonlabs/skeleton";
     import { title } from "$lib/store";
+    import type { Themes, Boards, Pieces } from "$lib/types/appearanceTypes";
+    import type { PageData } from "./$types";
+
+    export let data: PageData;
 
     title.set("Appearance");
 
     const toastStore = getToastStore();
 
-    const themes = $page.data.themes;
-    const boards = $page.data.boards;
-    const pieces = $page.data.pieces;
+    const themes = data.themes;
+    const boards = data.boards;
+    const pieces = data.pieces;
 
-    let theme: string = $page.data.theme;
-    let board: string = $page.data.board;
-    let piece: string = $page.data.piece;
-    let dark: boolean = $page.data.dark;
+    let theme: Themes = data.appearance.theme;
+    let board: Boards = data.appearance.board;
+    let piece: Pieces = data.appearance.piece;
+    let dark: boolean = data.appearance.dark;
 
     let changesMade: boolean = false;
 
@@ -49,10 +52,10 @@
         }
     }
     async function resetChanges() {
-        theme = $page.data.theme;
-        board = $page.data.board;
-        piece = $page.data.piece;
-        dark = $page.data.dark;
+        theme = data.appearance.theme;
+        board = data.appearance.board;
+        piece = data.appearance.piece;
+        dark = data.appearance.dark;
         changesMade = false;
         updateDark();
         updateTheme();
@@ -74,10 +77,10 @@
 
     function onChange() {
         changesMade =
-            board != $page.data.board ||
-            piece != $page.data.piece ||
-            theme != $page.data.theme ||
-            dark != $page.data.dark;
+            board != data.appearance.board ||
+            piece != data.appearance.piece ||
+            theme != data.appearance.theme ||
+            dark != data.appearance.dark;
     }
 </script>
 

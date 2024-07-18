@@ -110,6 +110,16 @@ class PersonalUserResponse(PublicUserResponse):
     email: str
 
 
+class Country(BaseModel):
+    name: str
+    emoji: str
+    image: str
+
+
+class CountryResponse(BaseModel):
+    countries: dict[str, Country]
+
+
 invalid_auth = HTTPException(
     status_code=401,
     detail="Invalid authentication credentials",
@@ -216,11 +226,11 @@ async def create_user(
 
     if not all(c.isalnum() for c in form_data.username):
         raise HTTPException(
-            400, detail="Username should only contain alphanumeric characters"
+            422, detail="Username should only contain alphanumeric characters"
         )
 
     if len(form_data.password) < 6:
-        raise HTTPException(400, detail="Password should be at least 6 characters long")
+        raise HTTPException(422, detail="Password should be at least 6 characters long")
 
     statement = select(Users).where(Users.username == form_data.username)
     result = await db.execute(statement=statement)
@@ -490,7 +500,7 @@ async def get_available_countries():
     """
     Returns available countries that can be used in a user profile
     """
-    return countries
+    return CountryResponse(countries=countries)
 
 
 @router.get("/default_avatar", status_code=200)

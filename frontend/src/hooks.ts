@@ -1,4 +1,6 @@
 import type { Handle, HandleFetch } from '@sveltejs/kit';
+import { type UserAppearance } from './lib/types/appearanceTypes'
+
 
 const unprotectedRoutes: string[] = [
     "/",
@@ -14,7 +16,7 @@ function redirect(location: string, body?: string) {
 }
 
 
-async function get_appearance(token: string | undefined) {
+async function get_appearance(token: string | undefined): Promise<UserAppearance> {
     if (!token) {
         return {
             "theme": "skeleton",
@@ -26,12 +28,9 @@ async function get_appearance(token: string | undefined) {
 
     const resp = await fetch("http://127.0.0.1:8000/api/appearance", {
         method: "GET",
-        headers: {
-            accept: 'application/json',
-            "Authorization": `Bearer ${token}`
-        }
+        headers: { "Authorization": `Bearer ${token}` }
     })
-    return await resp.json();
+    return await resp.json()
 }
 
 export const handleFetch: HandleFetch = async ({ event, request, fetch }) => {
@@ -48,16 +47,10 @@ export const handle: Handle = async ({ event, resolve }) => {
     const token = event.cookies.get('token')
     if (!token && !unprotectedRoutes.includes(event.url.pathname)) return redirect('/login', 'User not authenticated')
 
+    if (token) event.locals.loggedIn = true
 
-    if (token) {
-        event.locals.loggedIn = true
-    }
     const appearance = await get_appearance(token);
-    event.locals.board = appearance.board;
-    event.locals.piece = appearance.piece;
-    event.locals.theme = appearance.theme;
-    event.locals.dark = appearance.dark;
-
+    event.locals.appearance = appearance;
     return await resolve(event, {
         transformPageChunk: ({ html }) => html.replace('%theme%', appearance.theme).replace("%dark%", appearance.dark ? "dark" : "")
     })

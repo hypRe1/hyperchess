@@ -10,13 +10,10 @@ export const load: PageServerLoad = async ({ locals }) => {
     const pieces: string[] = await piecesResponse.json()
 
     return {
-        "theme": locals.theme,
-        "themes": themes,
-        "board": locals.board,
-        "boards": boards,
-        "piece": locals.piece,
-        "pieces": pieces,
-        "dark": locals.dark
+        appearance: locals.appearance,
+        themes: themes,
+        boards: boards,
+        pieces: pieces
     }
 }
 

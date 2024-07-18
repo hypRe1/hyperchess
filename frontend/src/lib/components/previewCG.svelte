@@ -1,8 +1,6 @@
 <script lang="ts">
     import { Chessground } from "svelte-chessground";
     import CustomCG from "$lib/components/CustomCG.svelte";
-    import "$lib/board-themes/base.css";
-    import "$lib/board-themes/custom.css";
     export let piece: string;
     export let board: string;
 

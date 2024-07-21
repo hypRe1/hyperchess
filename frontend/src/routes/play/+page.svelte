@@ -12,8 +12,8 @@
 	} from '@skeletonlabs/skeleton';
 	import CreateMatchModal from '$lib/modals/createMatch.svelte';
 	import FullScreenModal from '$lib/modals/fullScreen.svelte';
-	import { onMount, onDestroy } from 'svelte';
-	import { socketStore, connectSocket, closeSocket, sendMessage } from '$lib/stores/websocket';
+	import { onMount } from 'svelte';
+	import { connectSocket, closeSocket, sendMessage } from '$lib/stores/websocket';
 
 	export let data: PageData;
 
@@ -99,15 +99,9 @@
 	};
 
 	onMount(() => {
-		const unsubscribe = socketStore.subscribe((state) => {
-			// This will update messages whenever socketStore updates
-			// messages = state.messages.map((message) => message.data);
-		});
-
 		connectSocket('ws://127.0.0.1:8000/api/match/ws', handleMessage);
 
 		return () => {
-			unsubscribe();
 			closeSocket();
 			toastStore.trigger({
 				message: `Disconnected from websocket`,

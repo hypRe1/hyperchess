@@ -1,5 +1,5 @@
 <script lang="ts">
-	import "../app.postcss";
+	import '../app.postcss';
 	import {
 		AppBar,
 		AppShell,
@@ -11,48 +11,41 @@
 		type PopupSettings,
 		initializeStores,
 		getDrawerStore,
-		Modal,
-	} from "@skeletonlabs/skeleton";
-	import {
-		computePosition,
-		autoUpdate,
-		offset,
-		shift,
-		flip,
-		arrow,
-	} from "@floating-ui/dom";
-	import { title } from "$lib/store";
-	import { browser } from "$app/environment";
+		Modal
+	} from '@skeletonlabs/skeleton';
+	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
+	import { title } from '$lib/stores/title';
+	import { browser } from '$app/environment';
 
-	import { storePopup } from "@skeletonlabs/skeleton";
+	import { storePopup } from '@skeletonlabs/skeleton';
 	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
 
 	const accountPopup: PopupSettings = {
-		event: "click",
-		target: "accountPopup",
-		placement: "bottom",
+		event: 'click',
+		target: 'accountPopup',
+		placement: 'bottom',
 		middleware: {
-			offset: 24,
-		},
+			offset: 24
+		}
 	};
 
 	const accountPopupLinks = {
-		Account: "/account",
-		Appearance: "/appearance",
-		Matches: "/matches",
+		Account: '/account',
+		Appearance: '/appearance',
+		Matches: '/matches'
 	};
 
-	import Navigation from "$lib/components/Navigation.svelte";
-	import type { PageData } from "./$types";
+	import Navigation from '$lib/components/Navigation.svelte';
+	import type { PageData } from './$types';
 
 	initializeStores();
 	const drawerStore = getDrawerStore();
 
 	const drawerSettings: DrawerSettings = {
 		// Provide your property overrides:
-		width: "w-[200px]",
-		padding: "p-4",
-		rounded: "rounded-xl",
+		width: 'w-[200px]',
+		padding: 'p-4',
+		rounded: 'rounded-xl'
 	};
 
 	function drawerOpen(): void {
@@ -64,10 +57,10 @@
 	$: {
 		if (browser) {
 			data.dark
-				? document.documentElement.classList.add("dark")
-				: document.documentElement.classList.remove("dark");
+				? document.documentElement.classList.add('dark')
+				: document.documentElement.classList.remove('dark');
 
-			document.body.setAttribute("data-theme", data.theme);
+			document.body.setAttribute('data-theme', data.theme);
 		}
 	}
 </script>
@@ -91,11 +84,7 @@
 		{/each}
 		<hr />
 		<li>
-			<a
-				data-sveltekit-preload-data="tap"
-				data-sveltekit-reload
-				href="/logout">Logout</a
-			>
+			<a data-sveltekit-preload-data="tap" data-sveltekit-reload href="/logout">Logout</a>
 		</li>
 	</ul>
 	<div class="arrow bg-surface-100-800-token" />
@@ -127,10 +116,8 @@
 						/>
 					</div>
 				{:else}
-					<a
-						href="/login"
-						class="btn variant-ghost-primary"
-						data-sveltekit-preload-data="hover">Log in</a
+					<a href="/login" class="btn variant-ghost-primary" data-sveltekit-preload-data="hover"
+						>Log in</a
 					>
 				{/if}
 			</svelte:fragment>

@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { SvelteComponent } from "svelte";
-	import type { MatchListingRequestForm } from "$lib/types/gameConnectionManagerTypes";
+	import type { SvelteComponent } from 'svelte';
+	import type { MatchListingRequestForm } from '$lib/types/gameConnectionManagerTypes';
 
 	// Stores
-	import { getModalStore } from "@skeletonlabs/skeleton";
+	import { getModalStore } from '@skeletonlabs/skeleton';
 
 	// Props
 	/** Exposes parent props to this component. */
@@ -16,7 +16,7 @@
 		public: true,
 		colour: null,
 		time: 5,
-		bonus: 3,
+		bonus: 3
 	};
 
 	let rawTime: number = 9;
@@ -52,9 +52,9 @@
 	}
 
 	// Base Classes
-	const cBase = "card p-4 w-modal shadow-xl space-y-4";
-	const cHeader = "text-2xl font-bold";
-	const cForm = "p-4 space-y-4 rounded-container-token";
+	const cBase = 'card p-4 w-modal shadow-xl space-y-4';
+	const cHeader = 'text-2xl font-bold';
+	const cForm = 'p-4 space-y-4 rounded-container-token';
 </script>
 
 <!-- @component This example creates a simple form modal. -->
@@ -62,7 +62,7 @@
 {#if $modalStore[0]}
 	<div class="modal-example-form {cBase}">
 		<header class={cHeader}>
-			{$modalStore[0].title ?? "(title missing)"}
+			{$modalStore[0].title ?? '(title missing)'}
 		</header>
 		<!-- Enable for debugging: -->
 		<form class="modal-form {cForm}">
@@ -70,6 +70,7 @@
 				<span>Match visibility</span>
 
 				<select
+					name="visibility"
 					class="select overflow-y-hidden"
 					size="2"
 					bind:value={formData.public}
@@ -82,6 +83,7 @@
 				<span>Colour</span>
 
 				<select
+					name="colour"
 					class="select overflow-y-hidden"
 					size="3"
 					bind:value={formData.colour}
@@ -93,13 +95,7 @@
 			</label>
 			<label class="label">
 				<span>Minutes per side: {formData.time}</span>
-				<input
-					bind:value={rawTime}
-					on:input={updateTime}
-					type="range"
-					min="0"
-					max="38"
-				/>
+				<input bind:value={rawTime} on:input={updateTime} type="range" min="0" max="38" />
 			</label>
 			<label class="label">
 				<span>Increment in seconds: {formData.bonus}</span>

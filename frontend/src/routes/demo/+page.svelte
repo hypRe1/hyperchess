@@ -59,6 +59,7 @@
 				username={data.profile?.username}
 				about_me={data.profile?.about_me}
 				country={data.profile?.country}
+				admin={data.profile?.admin}
 			></Account>
 		</div>
 	</div>

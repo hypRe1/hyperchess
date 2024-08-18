@@ -1,4 +1,5 @@
 import { Themes, Pieces, UserAppearance } from '$lib/types/appearanceTypes'
+import type { CountryResponse } from '$lib/types/userTypes'
 
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
@@ -8,6 +9,7 @@ declare global {
 		interface Locals {
 			loggedIn: boolean
 			appearance: UserAppearance
+			countryData: CountryResponse
 		}
 		// interface PageData {}
 		// interface Error {}

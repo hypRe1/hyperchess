@@ -109,7 +109,7 @@
 				{#if data.loggedIn}
 					<div use:popup={accountPopup}>
 						<Avatar
-							src={data.avatar}
+							src={data.profile?.avatar}
 							fallback="fallback_pfp.png"
 							width="w-10"
 							rounded="rounded-full"

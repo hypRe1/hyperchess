@@ -31,8 +31,8 @@ class GameConnectionManager(ConnectionManager):
         self.match_listeners: set[str] = set()
         self.public_listings: dict[str, MatchListing] = {}
         self.private_listings: dict[str, MatchListing] = {}
-        self.public_matches: dict[str, Match] = []
-        self.private_matches: dict[str, Match] = []
+        self.public_matches: dict[str, Match] = {}
+        self.private_matches: dict[str, Match] = {}
         self.creators: dict[str, str] = {}
         self.current_match: dict[str, str] = {}
 
@@ -192,13 +192,13 @@ class GameConnectionManager(ConnectionManager):
             black = listing.creator
 
         match = Match(
-            code,
-            listing.public,
-            white,
-            black,
-            listing.time,
-            listing.bonus,
-            [listing.creator, opp],
+            code=code,
+            public=listing.public,
+            white_player=white,
+            black_player=black,
+            time=listing.time,
+            bonus=listing.bonus,
+            connected={listing.creator, opp},
         )
 
         if match.public:
@@ -209,37 +209,39 @@ class GameConnectionManager(ConnectionManager):
         await opp_ws.send_json(["acceptListing", {"success": True}])
 
         for player in creator_ws, opp_ws:
-            await player.send_json(["joinMatch", match.model_dump_json()])
+            await player.send_json(["joinMatch", code])
             self.current_match[player] = code
 
-    async def spectate_game(self, username: str, code: str):
+    async def join_game(self, username: str, code: str):
         ws = await self.get_ws(username)
         if ws is None:
             return
 
-        if code not in self.public_matches or code not in self.private_matches:
+        game = self.public_matches.get(code) or self.private_matches.get(code)
+
+        if game is None:
             await ws.send_json(
-                ["spectateMatch", {"success": False, "detail": "Game does not exist"}]
+                ["joinMatch", {"success": False, "detail": "Game does not exist"}]
             )
+            return
+        if game.game_over:
+            await ws.send_json(
+                ["joinMatch", {"success": False, "detail": "Game ended"}]
+            )
+            return
+
+        game.connected.add(username)
+        if game.public:
+            self.public_matches[code] = game
         else:
-            game = self.public_matches.get(code) or self.private_matches.get(code)
-            if game.game_over:
-                await ws.send_json(
-                    ["spectateMatch", {"success": False, "detail": "Game ended"}]
-                )
-            else:
-                game.connected.add(username)
-                if game.public:
-                    self.public_matches[code] = game
-                else:
-                    self.private_matches[code] = game
-                await ws.send_json(
-                    [
-                        "spectateMatch",
-                        game.model_dump_json(),
-                    ]
-                )
-                self.current_match[username] = code
+            self.private_matches[code] = game
+        await ws.send_json(
+            [
+                "joinMatch",
+                game.to_match_model().model_dump(),
+            ]
+        )
+        self.current_match[username] = code
 
     async def add_listing_listener(self, username: str):
         ws = await self.get_ws(username)
@@ -272,7 +274,8 @@ class GameConnectionManager(ConnectionManager):
                 {
                     "success": True,
                     "matches": [
-                        match.model_dump() for _, match in self.public_matches.items()
+                        match.to_match_model().model_dump()
+                        for _, match in self.public_matches.items()
                     ],
                 },
             ]

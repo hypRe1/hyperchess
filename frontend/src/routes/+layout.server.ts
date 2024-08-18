@@ -10,11 +10,10 @@ export const load: LayoutServerLoad = async ({ fetch, locals }) => {
 
         return {
             loggedIn: true,
-            username: profile.username,
-            about_me: profile.about_me,
-            avatar: profile.avatar,
+            profile: profile,
             dark: locals.appearance.dark,
             theme: locals.appearance.theme,
+            countries: locals.countryData.countries
         }
     } else {
         return {

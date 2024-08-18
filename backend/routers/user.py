@@ -44,7 +44,12 @@ with open("countries.csv") as f:
     for line in f:
         code, name, emoji, image = line.strip().split(",")
         valid_country_codes.add(code)
-        countries[code] = {"name": name, "emoji": emoji, "image": image}
+        countries[code] = {
+            "name": name,
+            "emoji": emoji,
+            "image": image,
+            "circular_image": f"https://hatscripts.github.io/circle-flags/flags/{code.lower()}.svg",
+        }
 
 with open("default_avatar.png", "rb") as f:
     default_pfp = f.read()
@@ -99,6 +104,7 @@ class EditUserRequest(BaseModel):
 
 class PublicUserResponse(BaseModel):
     username: str = Field(max_length=32)
+    admin: bool
     avatar: bytes
     about_me: str | None = Field(min_length=0, max_length=500)
     country: str | None = Field(min_length=2, max_length=2)
@@ -114,6 +120,7 @@ class Country(BaseModel):
     name: str
     emoji: str
     image: str
+    circular_image: str
 
 
 class CountryResponse(BaseModel):
@@ -418,6 +425,7 @@ async def get_personal_profile(user: user_dependency):
     """
     return PersonalUserResponse(
         username=user.username,
+        admin=user.admin,
         avatar=user_picture_B64(user.picture),
         email=user.email,
         about_me=user.about_me,

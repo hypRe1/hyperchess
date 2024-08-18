@@ -51,6 +51,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 
     const appearance = await get_appearance(token);
     event.locals.appearance = appearance;
+
+    const countriesResponse = await fetch("http://127.0.0.1:8000/api/user/countries", { method: "GET" })
+    event.locals.countryData = await countriesResponse.json();
+
     return await resolve(event, {
         transformPageChunk: ({ html }) => html.replace('%theme%', appearance.theme).replace("%dark%", appearance.dark ? "dark" : "")
     })

@@ -1,18 +1,26 @@
-import { writable } from 'svelte/store';
+import { writable, get } from 'svelte/store';
 
+export enum ConnectionState {
+    MATCH_PLAYING,
+    MATCH_SPECTATING,
+    LISTENING_LISTINGS,
+    LISTENING_MATCHES
+}
 interface WebSocketStore {
     socket: WebSocket | null;
+    states: Set<ConnectionState>;
     onMessageHandler: ((event: MessageEvent) => void);
 }
 
 const initialState: WebSocketStore = {
     socket: null,
+    states: new Set<ConnectionState>(),
     onMessageHandler: () => null
 };
 
 export const socketStore = writable<WebSocketStore>(initialState);
 
-export const connectSocket = (url: string, onMessage: (message: MessageEvent) => void) => {
+export const connectSocket = (onMessage: (message: MessageEvent) => void) => {
     socketStore.update((state) => {
         if (state.socket && state.socket.readyState === WebSocket.OPEN) {
             // Reuse existing socket
@@ -21,14 +29,13 @@ export const connectSocket = (url: string, onMessage: (message: MessageEvent) =>
         }
 
         // Create a new socket
-        const socket = new WebSocket(url);
+        const socket = new WebSocket("ws://127.0.0.1:8000/api/match/ws");
 
         socket.onopen = () => {
             console.log('WebSocket connection established');
         };
 
         socket.onmessage = (event) => {
-            console.log('Message from server:', event.data);
             state.onMessageHandler(event);
         };
 
@@ -66,3 +73,22 @@ export const closeSocket = () => {
         return initialState;
     });
 };
+
+export const addConnectionState = (connState: ConnectionState) => {
+    socketStore.update((state) => {
+        state.states.add(connState);
+        return state;
+    })
+}
+
+export const removeConnectionState = (connState: ConnectionState) => {
+    socketStore.update((state) => {
+        state.states.delete(connState);
+        return state;
+    })
+}
+
+export const hasConnectionState = (connState: ConnectionState) => {
+    let wsStore = get(socketStore);
+    return wsStore.states.has(connState);
+}

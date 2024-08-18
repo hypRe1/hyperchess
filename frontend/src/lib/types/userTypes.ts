@@ -9,6 +9,7 @@ export interface Country {
   name: string;
   emoji: string;
   image: string;
+  circular_image: string;
 }
 export interface CountryResponse {
   countries: {
@@ -22,6 +23,7 @@ export interface EditUserRequest {
 }
 export interface PersonalUserResponse {
   username: string;
+  admin: boolean;
   avatar: string;
   about_me: string | null;
   country: string | null;
@@ -31,6 +33,7 @@ export interface PersonalUserResponse {
 }
 export interface PublicUserResponse {
   username: string;
+  admin: boolean;
   avatar: string;
   about_me: string | null;
   country: string | null;

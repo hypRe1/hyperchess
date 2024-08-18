@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { Avatar, FileButton } from '@skeletonlabs/skeleton';
+	import { FileButton } from '@skeletonlabs/skeleton';
 	import { getToastStore } from '@skeletonlabs/skeleton';
+	import Account from '$lib/components/Account.svelte';
 	import { title } from '$lib/stores/title';
 
 	title.set('Account details');
@@ -10,23 +11,23 @@
 
 	export let data: PageData;
 
-	let email: String = data.user.email;
-	let about_me: String;
-	if (!data.user.about_me) about_me = '';
-	else about_me = data.user.about_me;
-	let avatar = data.user.avatar;
-	let country: String | null = data.user.country;
+	let countries = data.countries;
+
+	let email: string = data.profile.email;
+	let about_me: string;
+	if (!data.profile.about_me) about_me = '';
+	else about_me = data.profile.about_me;
+	let avatar = data.profile.avatar;
+	let country: string | null = data.profile.country;
 	let files: FileList;
 	let changesMade: boolean = false;
 
-	let countries = data.countries;
-
 	$: {
 		changesMade =
-			email != data.user.email ||
-			(about_me != data.user.about_me && (about_me != '' || data.user.about_me != null)) ||
-			avatar != data.user.avatar ||
-			country != data.user.country;
+			email != data.profile.email ||
+			(about_me != data.profile.about_me && (about_me != '' || data.profile.about_me != null)) ||
+			avatar != data.profile.avatar ||
+			country != data.profile.country;
 	}
 
 	function onImageUpload() {
@@ -56,7 +57,7 @@
 			},
 			body: JSON.stringify({
 				avatar:
-					avatar != data.user.avatar ? avatar.replace(/^data:image\/[a-z]+;base64,/, '') : null,
+					avatar != data.profile.avatar ? avatar.replace(/^data:image\/[a-z]+;base64,/, '') : null,
 				about_me: about_me,
 				country: country
 			})
@@ -80,10 +81,10 @@
 
 	function resetChanges() {
 		changesMade = false;
-		email = data.user.email;
-		if (!data.user.about_me) about_me = '';
-		else about_me = data.user.about_me;
-		avatar = data.user.avatar;
+		email = data.profile.email;
+		if (!data.profile.about_me) about_me = '';
+		else about_me = data.profile.about_me;
+		avatar = data.profile.avatar;
 	}
 </script>
 
@@ -92,14 +93,14 @@
 	<div class="grid grid-cols-1 lg:grid-cols-2">
 		<div class="p-4 flex flex-col gap-4">
 			<label class="label">
-				<span>Username</span>
+				<span>Username (cannot be changed)</span>
 				<input
 					class="input"
 					title="Username"
 					name="usernameInput"
 					type="text"
 					readonly={true}
-					value={data.user.username}
+					value={data.profile.username}
 				/>
 			</label>
 
@@ -129,7 +130,7 @@
 					title="Email"
 					name="emailInput"
 					type="email"
-					placeholder={data.user.email}
+					placeholder={data.profile.email}
 					autocomplete="email"
 					bind:value={email}
 				/>
@@ -141,7 +142,7 @@
 					class="textarea"
 					name="aboutMeInput"
 					rows="4"
-					placeholder={data.user.about_me}
+					placeholder={data.profile.about_me}
 					bind:value={about_me}
 				/>
 			</label>
@@ -152,19 +153,20 @@
 				<select class="select" name="countryInput" bind:value={country}>
 					<option value={null}>None</option>
 					{#each Object.entries(countries) as [code, country]}
-						<option value={code}>{country['name']}</option>
+						<option value={code}>{country.emoji} {country.name}</option>
 					{/each}
 				</select>
 			</label>
 		</div>
-		<div class="p-4 gap-3">
-			<div class="card card-hover p-4 flex flex-row gap-3">
-				<Avatar src={avatar} fallback="fallback_pfp.png" width="w-32" rounded="rounded-full" />
-				<div>
-					<h2 class="h2">{data.user.username}</h2>
-					<p>{about_me}</p>
-				</div>
-			</div>
+		<div>
+			<Account
+				bind:avatar
+				bind:username={data.profile.username}
+				bind:country
+				bind:admin={data.profile.admin}
+				bind:about_me
+				compact={false}
+			></Account>
 		</div>
 	</div>
 	{#if changesMade}

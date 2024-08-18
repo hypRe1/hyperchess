@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PageData } from "./$types";
+	import type { PageData } from './$types';
 
 	export let data: PageData;
 </script>
@@ -16,7 +16,7 @@
 	</div>
 {:else}
 	<div class="flex flex-col space-y-4">
-		<h1 class="h1">Welcome {data.username}</h1>
+		<h1 class="h1">Welcome {data.profile?.username}</h1>
 		<pre class="pre">To get started visit the demo.</pre>
 		<a href="/demo" class="btn variant-ghost-primary self-start">Demo</a>
 	</div>

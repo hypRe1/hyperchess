@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Avatar } from '@skeletonlabs/skeleton';
+	import Account from '$lib/components/Account.svelte';
 	import { title } from '$lib/stores/title';
 	import type { PageData } from './$types';
 	import VsEngineCg from '$lib/components/vsEngineCG.svelte';
@@ -35,16 +35,13 @@
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
 	<div>
-		<div class="p-1 flex flex-row gap-2">
-			<Avatar
-				src="https://cdn-icons-png.flaticon.com/512/1250/1250593.png"
-				width="w-12"
-				rounded="rounded-full"
-			/>
-			<div>
-				<h5 class="h5">{engine}</h5>
-				<p>The powerful chess engine</p>
-			</div>
+		<div>
+			<Account
+				avatar="https://cdn-icons-png.flaticon.com/512/1250/1250593.png"
+				bind:username={engine}
+				admin={true}
+				about_me="The powerful chess engine"
+			></Account>
 		</div>
 		<VsEngineCg
 			bind:depth
@@ -56,13 +53,13 @@
 			bind:reset
 			bind:load_fen
 		></VsEngineCg>
-
-		<div class="p-2 flex flex-row gap-2">
-			<Avatar src={data.avatar} width="w-12" rounded="rounded-full" />
-			<div>
-				<h5 class="h5">{data.username}</h5>
-				<p>{data.about_me}</p>
-			</div>
+		<div>
+			<Account
+				avatar={data.profile?.avatar}
+				username={data.profile?.username}
+				about_me={data.profile?.about_me}
+				country={data.profile?.country}
+			></Account>
 		</div>
 	</div>
 	<div class="card p-5 gap-3">

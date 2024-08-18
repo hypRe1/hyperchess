@@ -65,3 +65,17 @@ export function makeEngineMove(chessground: Chessground, chess: Chess, depth: nu
         }
     };
 }
+
+export function makePlayerMove(chessground: Chessground, chess: Chess) {
+    return async (orig: Square, dest: Square) => {
+        const promotion = chess.get(orig).type == 'p' && (dest.charAt(1) == '1' || dest.charAt(1) == '8') ? "q" : undefined;
+        const move_chessjs = chess.move({ from: orig, to: dest, promotion });
+        if (move_chessjs.flags.includes('e') || move_chessjs.flags.includes('p')) {
+            chessground.set({ fen: chess.fen() })
+        }
+
+        chessground.set({
+            check: chess.isCheck(),
+        });
+    };
+}

@@ -12,7 +12,7 @@ class MatchModel(BaseModel):
     black_player: str | None
     time: int
     bonus: int
-    connected: set[str]
+    connected: list[str]
     board: str
     game_over: bool = False
     result: str | None = None
@@ -32,7 +32,7 @@ class Match:
     board = chess.Board()
     game_over: bool = False
     result: str | None = None
-    time_created: int = t.time()
+    time_created: int = int(t.time())
     time_ended: int | None = None
 
     def to_match_model(self) -> MatchModel:

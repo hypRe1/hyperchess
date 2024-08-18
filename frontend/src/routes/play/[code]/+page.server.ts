@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ fetch, locals }) => {
+export const load: PageServerLoad = async ({ fetch, locals, cookies, params }) => {
     const boardsResponse = await fetch("http://127.0.0.1:8000/api/appearance/boards", { method: "GET" })
     const piecesResponse = await fetch("http://127.0.0.1:8000/api/appearance/pieces", { method: "GET" })
     const enginesResponse = await fetch("http://127.0.0.1:8000/api/engine/available", { method: "GET" })
@@ -9,11 +9,14 @@ export const load: PageServerLoad = async ({ fetch, locals }) => {
     const pieces: string[] = await piecesResponse.json()
     const engines: string[] = await enginesResponse.json()
 
+
     return {
         engines: engines,
         board: locals.appearance.board,
         piece: locals.appearance.piece,
         boards: boards,
-        pieces: pieces
+        pieces: pieces,
+        token: cookies.get("token"),
+        code: params.code
     }
 }

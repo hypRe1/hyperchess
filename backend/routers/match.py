@@ -31,7 +31,7 @@ async def match(websocket: WebSocket):
                 case "removeListing":
                     await manager.remove_listing(user.username)
                 case "acceptListing":
-                    await manager.accept_listing(user.username)
+                    await manager.accept_listing(data[1], user.username)
 
                 case "listenListings":
                     await manager.add_listing_listener(user.username)
@@ -42,9 +42,8 @@ async def match(websocket: WebSocket):
                 case "stopListenMatches":
                     await manager.remove_match_listener(user.username)
 
-                case "spectateMatch":
-                    await manager.spectate_game(user.username, data[1])
-
+                case "joinMatch":
+                    await manager.join_game(user.username, data[1])
                 case "makeMove":
                     await manager.make_move(user.username, data[1])
                 case "resign":

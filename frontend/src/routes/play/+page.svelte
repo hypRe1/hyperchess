@@ -13,7 +13,14 @@
 	import CreateMatchModal from '$lib/modals/createMatch.svelte';
 	import FullScreenModal from '$lib/modals/fullScreen.svelte';
 	import { onMount } from 'svelte';
-	import { connectSocket, closeSocket, sendMessage } from '$lib/stores/websocket';
+	import {
+		connectSocket,
+		closeSocket,
+		sendMessage,
+		addConnectionState,
+		ConnectionState
+	} from '$lib/stores/websocket';
+	import { goto } from '$app/navigation';
 
 	export let data: PageData;
 
@@ -22,6 +29,7 @@
 
 	let listings: MatchListing[] = [];
 	let userListing: MatchListing | null = null;
+	let invalidateSocket: boolean = true;
 
 	const handleMessage = (event: MessageEvent) => {
 		const msg = JSON.parse(event.data);
@@ -38,7 +46,7 @@
 				toastStore.trigger({
 					message: `Connected to websocket`,
 					background: 'variant-filled-success',
-					timeout: 2000
+					timeout: 5000
 				});
 				sendMessage(JSON.stringify(['listenListings']));
 				break;
@@ -58,13 +66,13 @@
 					toastStore.trigger({
 						message: `Created listing with code ${msgData.listing.code}`,
 						background: 'variant-filled-success',
-						timeout: 2000
+						timeout: 5000
 					});
 				} else {
 					toastStore.trigger({
 						message: msgData.detail,
 						background: 'variant-filled-error',
-						timeout: 2000
+						timeout: 5000
 					});
 				}
 				break;
@@ -74,19 +82,20 @@
 					toastStore.trigger({
 						message: `Deleted listing with code ${msgData.code}`,
 						background: 'variant-filled-success',
-						timeout: 2000
+						timeout: 5000
 					});
 				} else {
 					toastStore.trigger({
 						message: msgData.detail,
 						background: 'variant-filled-error',
-						timeout: 2000
+						timeout: 5000
 					});
 				}
 				break;
 			case 'listenListings':
 				if (msgData.listings !== undefined) {
 					listings = msgData.listings;
+					addConnectionState(ConnectionState.LISTENING_LISTINGS);
 				} else if (msgData.addListing !== undefined) {
 					listings = [...listings, msgData.addListing];
 				} else if (msgData.removeListing !== undefined) {
@@ -95,19 +104,32 @@
 					});
 				}
 				break;
+
+			case 'joinMatch':
+				toastStore.trigger({
+					message: 'Game started',
+					background: 'variant-filled-success',
+					timeout: 5000
+				});
+				invalidateSocket = false;
+				addConnectionState(ConnectionState.MATCH_PLAYING);
+				goto(`/play/${msgData}`);
 		}
 	};
 
 	onMount(() => {
-		connectSocket('ws://127.0.0.1:8000/api/match/ws', handleMessage);
+		connectSocket(handleMessage);
 
 		return () => {
-			closeSocket();
-			toastStore.trigger({
-				message: `Disconnected from websocket`,
-				background: 'variant-filled-success',
-				timeout: 2000
-			});
+			sendMessage(JSON.stringify(['stopListenListings']));
+			if (invalidateSocket) {
+				closeSocket();
+				toastStore.trigger({
+					message: `Disconnected from websocket`,
+					background: 'variant-filled-success',
+					timeout: 2000
+				});
+			}
 		};
 	});
 	function createListing(listingForm: MatchListingRequestForm) {
@@ -138,6 +160,10 @@
 		} else {
 			return 'black';
 		}
+	}
+
+	function acceptListing(code: string) {
+		sendMessage(JSON.stringify(['acceptListing', code]));
 	}
 </script>
 
@@ -177,7 +203,7 @@
 
 			{#each listings as listing}
 				{#if userListing == null || listing.code !== userListing.code}
-					<tr>
+					<tr on:click={() => acceptListing(listing.code)}>
 						<td><span class="badge variant-soft-primary">{listing.code}</span></td>
 						<td>{getColourString(listing.colour)}</td>
 						<td>{listing.creator}</td>

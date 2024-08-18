@@ -4,6 +4,8 @@
 	import { getToastStore } from '@skeletonlabs/skeleton';
 	import Account from '$lib/components/Account.svelte';
 	import { title } from '$lib/stores/title';
+	import type { PersonalUserResponse } from '$lib/types/userTypes';
+	import { error } from '@sveltejs/kit';
 
 	title.set('Account details');
 
@@ -11,23 +13,25 @@
 
 	export let data: PageData;
 
+	if (data.profile === undefined) error(500);
 	let countries = data.countries;
+	let profile: PersonalUserResponse = data.profile;
 
-	let email: string = data.profile.email;
+	let email: string = profile.email;
 	let about_me: string;
-	if (!data.profile.about_me) about_me = '';
-	else about_me = data.profile.about_me;
-	let avatar = data.profile.avatar;
-	let country: string | null = data.profile.country;
+	if (!profile.about_me) about_me = '';
+	else about_me = profile.about_me;
+	let avatar = profile.avatar;
+	let country: string | null = profile.country;
 	let files: FileList;
 	let changesMade: boolean = false;
 
 	$: {
 		changesMade =
-			email != data.profile.email ||
-			(about_me != data.profile.about_me && (about_me != '' || data.profile.about_me != null)) ||
-			avatar != data.profile.avatar ||
-			country != data.profile.country;
+			email != profile.email ||
+			(about_me != profile.about_me && (about_me != '' || profile.about_me != null)) ||
+			avatar != profile.avatar ||
+			country != profile.country;
 	}
 
 	function onImageUpload() {
@@ -56,8 +60,7 @@
 				accept: 'application/json'
 			},
 			body: JSON.stringify({
-				avatar:
-					avatar != data.profile.avatar ? avatar.replace(/^data:image\/[a-z]+;base64,/, '') : null,
+				avatar: avatar != profile.avatar ? avatar.replace(/^data:image\/[a-z]+;base64,/, '') : null,
 				about_me: about_me,
 				country: country
 			})
@@ -81,10 +84,10 @@
 
 	function resetChanges() {
 		changesMade = false;
-		email = data.profile.email;
-		if (!data.profile.about_me) about_me = '';
-		else about_me = data.profile.about_me;
-		avatar = data.profile.avatar;
+		email = profile.email;
+		if (!profile.about_me) about_me = '';
+		else about_me = profile.about_me;
+		avatar = profile.avatar;
 	}
 </script>
 
@@ -100,7 +103,7 @@
 					name="usernameInput"
 					type="text"
 					readonly={true}
-					value={data.profile.username}
+					value={profile.username}
 				/>
 			</label>
 
@@ -130,7 +133,7 @@
 					title="Email"
 					name="emailInput"
 					type="email"
-					placeholder={data.profile.email}
+					placeholder={profile.email}
 					autocomplete="email"
 					bind:value={email}
 				/>
@@ -142,7 +145,7 @@
 					class="textarea"
 					name="aboutMeInput"
 					rows="4"
-					placeholder={data.profile.about_me}
+					placeholder={profile.about_me}
 					bind:value={about_me}
 				/>
 			</label>
@@ -161,9 +164,9 @@
 		<div>
 			<Account
 				bind:avatar
-				bind:username={data.profile.username}
+				bind:username={profile.username}
 				bind:country
-				bind:admin={data.profile.admin}
+				bind:admin={profile.admin}
 				bind:about_me
 				compact={false}
 			></Account>

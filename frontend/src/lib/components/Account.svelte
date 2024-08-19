@@ -3,13 +3,11 @@
 	import { page } from '$app/stores';
 
 	export let avatar: string | undefined;
-	export let username: string | undefined;
+	export let username: string | null | undefined;
 	export let admin: boolean = false;
 	export let country: string | null = null;
 	export let about_me: string | null | undefined = '';
 	export let compact: boolean = true;
-
-	console.log($page.data);
 
 	let badges: { [badge: string]: string } = {};
 	if (admin) {

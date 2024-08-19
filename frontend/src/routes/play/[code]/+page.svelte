@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Avatar } from '@skeletonlabs/skeleton';
+	import Account from '$lib/components/Account.svelte';
 	import { title } from '$lib/stores/title';
 	import type { PageData } from './$types';
 	import {
@@ -31,7 +31,6 @@
 	let board = data.board;
 	let match: MatchModel;
 
-	let fen: string = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 	let flipBoard: () => void;
 
 	const handleMessage = (event: MessageEvent) => {
@@ -68,6 +67,8 @@
 
 	onMount(() => {
 		connectSocket(handleMessage);
+		if (hasConnectionState(ConnectionState.MATCH_PLAYING))
+			sendMessage(JSON.stringify(['joinMatch', data.code]));
 
 		return () => {
 			closeSocket();
@@ -80,34 +81,27 @@
 	});
 </script>
 
-<div>
-	<div class="p-1 flex flex-row gap-2">
-		<Avatar width="w-12" rounded="rounded-full" />
-
-		<div>
-			<h5 class="h5">
-				{loading ? 'Black player' : match.black_player}
-			</h5>
-			<p>Black player bio</p>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+	<div>
+		<div class="p-1 flex flex-row gap-2">
+			<Account
+				avatar={undefined}
+				username={loading ? 'Black player' : match.black_player}
+				about_me="Black player bio"
+			></Account>
 		</div>
-	</div>
 
-	<div style="width: 320; height: 320;">
 		<VsPlayerCg bind:piece bind:board bind:flipBoard></VsPlayerCg>
-	</div>
 
-	<div class="p-2 flex flex-row gap-2">
-		<Avatar
-			class={loading ? 'placeholder animate-pulse' : ''}
-			src={data.avatar}
-			width="w-12"
-			rounded="rounded-full"
-		/>
 		<div>
-			<h5 class="h5">
-				{loading ? 'White player' : match.white_player}
-			</h5>
-			<p>White player bio</p>
+			<Account
+				avatar={undefined}
+				username={loading ? 'White player' : match.white_player}
+				about_me="White player bio"
+			></Account>
 		</div>
+	</div>
+	<div class="card p-5 gap-3">
+		<h2 class="h2">Chess Match</h2>
 	</div>
 </div>

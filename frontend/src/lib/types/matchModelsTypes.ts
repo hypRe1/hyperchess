@@ -13,7 +13,7 @@ export interface MatchModel {
   time: number;
   bonus: number;
   connected: string[];
-  board: string;
+  moves: string[];
   game_over?: boolean;
   result?: string | null;
   time_created?: number;

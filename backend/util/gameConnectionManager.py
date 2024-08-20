@@ -1,7 +1,7 @@
 import random
 import string
 
-from chess import COLORS, Color, IllegalMoveError, InvalidMoveError
+from chess import COLORS, Board, Color, IllegalMoveError, InvalidMoveError
 from fastapi import WebSocket
 from pydantic import BaseModel
 from util.connectionManager import ConnectionManager
@@ -199,6 +199,7 @@ class GameConnectionManager(ConnectionManager):
             time=listing.time,
             bonus=listing.bonus,
             connected={listing.creator, opp},
+            board=Board(),
         )
 
         if match.public:
@@ -347,13 +348,15 @@ class GameConnectionManager(ConnectionManager):
                     "makeMove",
                     {
                         "success": False,
-                        "detail": "Hmmm somethings gone wrong",
+                        "detail": "Match does not exist",
                     },
                 ]
             )
             return
 
         board = game.board
+
+        print(username, game.to_match_model().model_dump())
         moving_player = game.white_player if board.turn else game.black_player
         if username != moving_player:
             await ws.send_json(
@@ -365,8 +368,10 @@ class GameConnectionManager(ConnectionManager):
                     },
                 ]
             )
+            return
 
         try:
+            print("pushing move")
             parsed_move = board.push_uci(move)
         except IllegalMoveError:
             await ws.send_json(
@@ -388,25 +393,21 @@ class GameConnectionManager(ConnectionManager):
                     },
                 ]
             )
-        game.board = board
-        if game.public:
-            self.public_matches[code] = game
         else:
-            self.private_matches[code] = game
+            game.board = board
+            if game.public:
+                self.public_matches[code] = game
+            else:
+                self.private_matches[code] = game
 
-        for player in game.connected:
-            player_ws = await self.get_ws(player)
-            if player_ws is not None:
-                player_ws.send_json(
-                    [
-                        "makeMove",
-                        {
-                            "from": parsed_move.from_square,
-                            "to": parsed_move.to_square,
-                            "promotion": parsed_move.promotion,
-                        },
-                    ]
-                )
+            for player in game.connected:
+                if player == username:
+                    await ws.send_json(["makeMove", {"success": True}])
+                    continue
+
+                player_ws = await self.get_ws(player)
+                if player_ws is not None:
+                    await player_ws.send_json(["pushMove", parsed_move.uci()])
 
     async def disconnect(self, username: str, ws: WebSocket | None):
         if username in self.active_connections and (

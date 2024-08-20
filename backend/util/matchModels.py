@@ -13,7 +13,7 @@ class MatchModel(BaseModel):
     time: int
     bonus: int
     connected: list[str]
-    board: str
+    moves: list[str]
     game_over: bool = False
     result: str | None = None
     time_created: int = Field(default_factory=t.time)
@@ -29,7 +29,7 @@ class Match:
     time: int
     bonus: int
     connected: set[str]
-    board = chess.Board()
+    board: chess.Board
     game_over: bool = False
     result: str | None = None
     time_created: int = int(t.time())
@@ -44,7 +44,7 @@ class Match:
             time=self.time,
             bonus=self.bonus,
             connected=self.connected,
-            board=self.board.fen(),
+            moves=[m.uci() for m in self.board.move_stack],
             game_over=self.game_over,
             result=self.result,
             time_created=self.time_created,

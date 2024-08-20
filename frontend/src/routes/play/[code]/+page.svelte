@@ -10,12 +10,7 @@
 		hasConnectionState
 	} from '$lib/stores/websocket';
 	import { onMount } from 'svelte';
-	import {
-		getToastStore,
-		getModalStore,
-		type ModalComponent,
-		type ModalSettings
-	} from '@skeletonlabs/skeleton';
+	import { getToastStore, getModalStore, type ModalSettings, popup } from '@skeletonlabs/skeleton';
 	import FullScreenModal from '$lib/modals/fullScreen.svelte';
 	import VsPlayerCg from '$lib/components/vsPlayerCG.svelte';
 	import type { MatchModel } from '$lib/types/matchModelsTypes';
@@ -30,8 +25,23 @@
 	let piece = data.piece;
 	let board = data.board;
 	let match: MatchModel;
+	enum BoardMode {
+		white,
+		black,
+		spectate
+	}
+	let boardMode = BoardMode.spectate;
 
 	let flipBoard: () => void;
+	let push_move: (
+		move:
+			| string
+			| {
+					from: string;
+					to: string;
+					promotion?: string;
+			  }
+	) => void;
 
 	const handleMessage = (event: MessageEvent) => {
 		const msg = JSON.parse(event.data);
@@ -61,6 +71,35 @@
 				loading = false;
 				match = msgData;
 				console.log(match);
+				if (data.profile!.username == match.white_player) {
+					boardMode = BoardMode.white;
+				} else if (data.profile!.username == match.black_player) {
+					boardMode = BoardMode.black;
+				}
+				for (var i = 0; i < match.moves.length; i++) push_move(match.moves[i]);
+				toastStore.trigger({
+					message: 'Joined match',
+					background: 'variant-filled-success',
+					timeout: 2000
+				});
+				break;
+			case 'makeMove':
+				if (msgData.success) {
+					toastStore.trigger({
+						message: 'Made move successfully',
+						background: 'variant-filled-success',
+						timeout: 2000
+					});
+				} else {
+					toastStore.trigger({
+						message: 'Failed to make move',
+						background: 'variant-filled-error',
+						timeout: 2000
+					});
+				}
+				break;
+			case 'pushMove':
+				push_move(msgData);
 				break;
 		}
 	};
@@ -91,7 +130,8 @@
 			></Account>
 		</div>
 
-		<VsPlayerCg bind:piece bind:board bind:flipBoard></VsPlayerCg>
+		<VsPlayerCg bind:piece bind:board bind:flipBoard bind:push_move bind:mode={boardMode}
+		></VsPlayerCg>
 
 		<div>
 			<Account

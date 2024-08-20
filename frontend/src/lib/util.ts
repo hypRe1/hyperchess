@@ -1,5 +1,6 @@
 import { Chessground } from "svelte-chessground";
 import { Chess, type Square, SQUARES } from 'chess.js';
+import { sendMessage } from '$lib/stores/websocket';
 
 export function legalMoves(chess: Chess) {
     const dests = new Map();
@@ -38,9 +39,6 @@ export function makeEngineMove(chessground: Chessground, chess: Chess, depth: nu
         if (response.ok) {
             const move = (await response.text()).slice(1, -1)
             console.log(move)
-            const origin = move.slice(0, 2)
-            const dest = move.slice(2, 4)
-
             const move_chessjs = chess.move(move)
 
 
@@ -48,7 +46,7 @@ export function makeEngineMove(chessground: Chessground, chess: Chess, depth: nu
             if (move_chessjs.flags.includes('e') || move_chessjs.flags.includes('p')) {
                 chessground.set({ fen: chess.fen() })
             } else {
-                chessground.move(origin, dest);
+                chessground.move(move_chessjs.from, move_chessjs.to);
             }
 
 
@@ -70,6 +68,7 @@ export function makePlayerMove(chessground: Chessground, chess: Chess) {
     return async (orig: Square, dest: Square) => {
         const promotion = chess.get(orig).type == 'p' && (dest.charAt(1) == '1' || dest.charAt(1) == '8') ? "q" : undefined;
         const move_chessjs = chess.move({ from: orig, to: dest, promotion });
+        sendMessage(JSON.stringify(['makeMove', move_chessjs.from + move_chessjs.to + ((move_chessjs.promotion === undefined) ? "" : promotion)]));
         if (move_chessjs.flags.includes('e') || move_chessjs.flags.includes('p')) {
             chessground.set({ fen: chess.fen() })
         }

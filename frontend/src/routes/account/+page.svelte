@@ -113,7 +113,7 @@
 					<button type="button">
 						<FileButton
 							bind:files
-							on:change{onImageUpload}
+							on:change={onImageUpload}
 							name="files"
 							accept="image/png, image/jpeg"
 							button="btn variant-filled-secondary">Upload</FileButton

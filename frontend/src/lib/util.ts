@@ -1,6 +1,14 @@
 import { Chessground } from "svelte-chessground";
 import { Chess, type Square, SQUARES } from 'chess.js';
 import { sendMessage } from '$lib/stores/websocket';
+import type { PublicUserResponse } from '$lib/types/userTypes';
+
+export async function getProfile(username: string): Promise<PublicUserResponse> {
+    const resp = await fetch(`http://127.0.0.1:8000/api/user/profile/${username}`, {
+        method: 'GET'
+    });
+    return await resp.json();
+}
 
 export function legalMoves(chess: Chess) {
     const dests = new Map();

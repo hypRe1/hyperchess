@@ -1,11 +1,12 @@
 import random
 import string
+import time
 
 from chess import COLORS, Board, Color, IllegalMoveError, InvalidMoveError
 from fastapi import WebSocket
 from pydantic import BaseModel
 from util.connectionManager import ConnectionManager
-from util.matchModels import Match
+from util.matchModels import Match, Result
 
 
 class MatchListing(BaseModel):
@@ -199,7 +200,6 @@ class GameConnectionManager(ConnectionManager):
             time=listing.time,
             bonus=listing.bonus,
             connected={listing.creator, opp},
-            board=Board(),
         )
 
         if match.public:
@@ -218,7 +218,7 @@ class GameConnectionManager(ConnectionManager):
         if ws is None:
             return
 
-        game = self.public_matches.get(code) or self.private_matches.get(code)
+        game = self.get_match_from_code(code)
 
         if game is None:
             await ws.send_json(
@@ -344,20 +344,14 @@ class GameConnectionManager(ConnectionManager):
 
         if game is None:
             await ws.send_json(
-                [
-                    "makeMove",
-                    {
-                        "success": False,
-                        "detail": "Match does not exist",
-                    },
-                ]
+                ["makeMove", {"success": False, "detail": "Game does not exist"}]
             )
             return
+        if game.game_over:
+            await ws.send_json(["makeMove", {"success": False, "detail": "Game ended"}])
+            return
 
-        board = game.board
-
-        print(username, game.to_match_model().model_dump())
-        moving_player = game.white_player if board.turn else game.black_player
+        moving_player = game.white_player if game.board.turn else game.black_player
         if username != moving_player:
             await ws.send_json(
                 [
@@ -371,8 +365,7 @@ class GameConnectionManager(ConnectionManager):
             return
 
         try:
-            print("pushing move")
-            parsed_move = board.push_uci(move)
+            parsed_move = game.board.push_uci(move)
         except IllegalMoveError:
             await ws.send_json(
                 [
@@ -394,20 +387,144 @@ class GameConnectionManager(ConnectionManager):
                 ]
             )
         else:
-            game.board = board
+            time_spent = time.time() - game.time_created - sum(game.timings)
+            game.timings.append(time_spent)
+            time_left = game.time * 60 - sum(
+                [
+                    game.timings[i] - game.bonus
+                    for i in range(int(not game.board.turn), len(game.timings), 2)
+                ]
+            )
+
+            if time_left < 0:
+                game.game_over = True
+                game.winner = not game.board.turn
+                game.result = Result.FLAGGED
+
+            if game.board.is_checkmate():
+                game.game_over = True
+                game.winner = not game.board.turn
+                game.result = Result.CHECKMATE
+
+            elif game.board.is_stalemate():
+                game.game_over = True
+                game.winner = None
+                game.result = Result.STALEMATE
+
+            elif game.board.is_insufficient_material():
+                game.game_over = True
+                game.winner = None
+                game.result = Result.INSUFFICIENT_MATERIAL
+
+            elif game.board.is_repetition():
+                game.game_over = True
+                game.winner = None
+                game.result = Result.REPETITION
+
+            elif game.board.is_seventyfive_moves():
+                game.game_over = True
+                game.winner = None
+                game.result = Result.SEVENTYFIVE_MOVES
+
             if game.public:
                 self.public_matches[code] = game
             else:
                 self.private_matches[code] = game
 
+            uci_move = parsed_move.uci()
             for player in game.connected:
                 if player == username:
-                    await ws.send_json(["makeMove", {"success": True}])
+                    await ws.send_json(
+                        ["makeMove", {"success": True, "time": time_spent}]
+                    )
+                    if game.game_over:
+                        await ws.send_json(
+                            ["gameOver", {"result": game.result, "winner": game.winner}]
+                        )
                     continue
 
                 player_ws = await self.get_ws(player)
                 if player_ws is not None:
-                    await player_ws.send_json(["pushMove", parsed_move.uci()])
+                    await player_ws.send_json(
+                        ["pushMove", {"move": uci_move, "time": time_spent}]
+                    )
+                    if game.game_over:
+                        await player_ws.send_json(
+                            ["gameOver", {"result": game.result, "winner": game.winner}]
+                        )
+
+    async def check_clock(self, username: str):
+        ws = await self.get_ws(username)
+        if ws is None:
+            return
+
+        if username not in self.current_match:
+            await ws.send_json(
+                [
+                    "checkClock",
+                    {
+                        "success": False,
+                        "detail": "You are not currently in a match",
+                    },
+                ]
+            )
+            return
+
+        code = self.current_match[username]
+        game = self.get_match_from_code(code)
+
+        if game is None:
+            await ws.send_json(
+                [
+                    "checkClock",
+                    {
+                        "success": False,
+                        "detail": "Game does not exist",
+                    },
+                ]
+            )
+            return
+
+        if game.game_over:
+            await ws.send_json(
+                [
+                    "checkClock",
+                    {
+                        "success": False,
+                        "detail": "Game is already over",
+                    },
+                ]
+            )
+            return
+
+        time_spent = time.time() - game.time_created - sum(game.timings)
+        time_left = (
+            game.time * 60
+            - sum(
+                [
+                    game.timings[i] - game.bonus
+                    for i in range(int(not game.board.turn), len(game.timings), 2)
+                ]
+            )
+            - time_spent
+        )
+
+        if time_left <= 0:
+            game.game_over = True
+            game.winner = not game.board.turn
+            game.result = Result.FLAGGED
+            if game.public:
+                self.public_matches[code] = game
+            else:
+                self.private_matches[code] = game
+            for player in game.connected:
+                player_ws = await self.get_ws(player)
+                if player_ws is not None:
+                    await player_ws.send_json(
+                        ["gameOver", {"result": game.result, "winner": game.winner}]
+                    )
+
+        await ws.send_json(["checkClock", {"success": True, "time_left": time_left}])
 
     async def disconnect(self, username: str, ws: WebSocket | None):
         if username in self.active_connections and (

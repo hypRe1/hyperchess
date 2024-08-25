@@ -165,6 +165,16 @@
 	function acceptListing(code: string) {
 		sendMessage(JSON.stringify(['acceptListing', code]));
 	}
+
+	function fractionTime(time: number) {
+		if (time == 0.5) {
+			return '½';
+		} else if (time == 0.25) {
+			return '¼';
+		} else {
+			return time;
+		}
+	}
 </script>
 
 <h2 class="h2">Play chess</h2>
@@ -196,7 +206,7 @@
 					<td>{getColourString(userListing.colour)}</td>
 					<td>{userListing.creator}</td>
 					<td>blank</td>
-					<td>{userListing.time}+{userListing.bonus}</td>
+					<td>{fractionTime(userListing.time)}+{userListing.bonus}</td>
 					<td>blank</td>
 				</tr>
 			{/if}
@@ -208,7 +218,7 @@
 						<td>{getColourString(listing.colour)}</td>
 						<td>{listing.creator}</td>
 						<td>blank</td>
-						<td>{listing.time}+{listing.bonus}</td>
+						<td>{fractionTime(listing.time)}+{listing.bonus}</td>
 						<td>blank</td>
 					</tr>
 				{/if}

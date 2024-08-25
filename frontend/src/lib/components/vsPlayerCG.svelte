@@ -17,6 +17,14 @@
 
 	export let flipBoard: () => void;
 
+	export function history(): string[] {
+		return chess.history();
+	}
+
+	export function turn(): boolean {
+		return chess.turn() == 'w';
+	}
+
 	export function push_move(
 		move:
 			| string
@@ -33,7 +41,7 @@
 			} else {
 				chessground.move(move_chessjs.from, move_chessjs.to);
 			}
-			console.log(chess.turn());
+
 			chessground.set({
 				turnColor: chess.turn() == 'w' ? 'white' : 'black',
 				check: chess.isCheck(),
@@ -41,6 +49,8 @@
 					dests: legalMoves(chess)
 				}
 			});
+
+			chessground.playPremove();
 		}
 	}
 
@@ -72,9 +82,9 @@
 
 	$: {
 		if (assigned) {
+			chessground.set({ viewOnly: mode == BoardMode.spectate });
 			chessground.set({
 				orientation: mode == BoardMode.black ? 'black' : 'white',
-				// viewOnly: mode == BoardMode.black,
 				movable: {
 					color: mode == BoardMode.black ? 'black' : 'white',
 					events: {

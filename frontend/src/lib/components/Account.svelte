@@ -2,7 +2,7 @@
 	import { Avatar, popup } from '@skeletonlabs/skeleton';
 	import { page } from '$app/stores';
 
-	export let avatar: string | undefined;
+	export let avatar: string | undefined = undefined;
 	export let username: string | null | undefined;
 	export let admin: boolean = false;
 	export let country: string | null = null;
@@ -49,7 +49,9 @@
 			{/each}
 		</div>
 
-		<p>{about_me}</p>
+		{#if !compact}
+			<p>{about_me}</p>
+		{/if}
 	</div>
 </div>
 

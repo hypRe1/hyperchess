@@ -5,17 +5,20 @@
 /* Do not modify it by hand - just update the pydantic models and then re-run the script
 */
 
+export type Result = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
 export interface MatchModel {
   code: string;
   public: boolean;
-  white_player: string | null;
-  black_player: string | null;
+  white_player: string;
+  black_player: string;
   time: number;
   bonus: number;
   connected: string[];
   moves: string[];
   game_over?: boolean;
-  result?: string | null;
+  result?: Result & number;
+  winner?: boolean | null;
   time_created?: number;
-  time_ended?: number | null;
+  timings?: number[];
 }

@@ -50,5 +50,7 @@ async def match(websocket: WebSocket):
                     pass
                 case "chat":
                     pass
+                case "checkClock":
+                    await manager.check_clock(user.username)
     except WebSocketDisconnect:
         await manager.disconnect(user.username, websocket)

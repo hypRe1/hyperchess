@@ -454,6 +454,7 @@ async def get_user_profile(username: str, db: db_dependency):
 
     return PublicUserResponse(
         username=user.username,
+        admin=user.admin,
         avatar=user_picture_B64(user.picture),
         about_me=user.about_me,
         rating=user.rating,

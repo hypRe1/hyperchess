@@ -63,6 +63,35 @@
 
 	let timerInterval: NodeJS.Timeout;
 
+	function updateTimers() {
+		let _turn = turn();
+		let d = new Date();
+		let seconds = Math.round(d.getTime() / 1000);
+		let time_spent = seconds - match.time_created! - match.timings!.reduce((a, b) => a + b, 0);
+		let white_time_left =
+			match.time * 60 -
+			match
+				.timings!.slice(0)
+				.filter((_, i) => i % 2 === 0)
+				.reduce((acc, timing) => acc + (timing - match.bonus), 0);
+		let black_time_left =
+			match.time * 60 -
+			match
+				.timings!.slice(1)
+				.filter((_, i) => i % 2 === 0)
+				.reduce((acc, timing) => acc + (timing - match.bonus), 0);
+
+		_turn
+			? (white_time_left = white_time_left - time_spent)
+			: (black_time_left = black_time_left - time_spent);
+
+		if (white_time_left < 0) white_time_left = 0;
+		if (black_time_left < 0) black_time_left = 0;
+
+		wt = Math.round(white_time_left);
+		bt = Math.round(black_time_left);
+	}
+
 	function displayTime(seconds: number): string {
 		return `${Math.floor(seconds / 60)
 			.toString()
@@ -98,6 +127,22 @@
 				match = msgData;
 
 				wt = bt = match.time * 60;
+
+				if (data.profile!.username == match.white_player) {
+					boardMode = BoardMode.white;
+				} else if (data.profile!.username == match.black_player) {
+					boardMode = BoardMode.black;
+				}
+				for (var i = 0; i < match.moves.length; i++) push_move(match.moves[i]);
+				moves = history();
+				toastStore.trigger({
+					message: 'Joined match',
+					background: 'variant-filled-success',
+					timeout: 2000
+				});
+
+				updateTimers();
+
 				function updateTimer() {
 					if (!match.game_over) {
 						let _turn: boolean = turn();
@@ -121,19 +166,6 @@
 				}
 
 				timerInterval = setInterval(updateTimer, 100);
-
-				if (data.profile!.username == match.white_player) {
-					boardMode = BoardMode.white;
-				} else if (data.profile!.username == match.black_player) {
-					boardMode = BoardMode.black;
-				}
-				for (var i = 0; i < match.moves.length; i++) push_move(match.moves[i]);
-				moves = history();
-				toastStore.trigger({
-					message: 'Joined match',
-					background: 'variant-filled-success',
-					timeout: 2000
-				});
 				break;
 			case 'makeMove':
 				if (msgData.success) {
@@ -155,6 +187,7 @@
 				moves = history();
 				break;
 			case 'gameOver':
+				updateTimers();
 				boardMode = BoardMode.spectate;
 				match.game_over = true;
 				match.result = msgData.result;

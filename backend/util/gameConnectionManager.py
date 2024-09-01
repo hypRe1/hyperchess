@@ -2,7 +2,7 @@ import random
 import string
 import time
 
-from chess import COLORS, Board, Color, IllegalMoveError, InvalidMoveError
+from chess import COLORS, Color, IllegalMoveError, InvalidMoveError
 from fastapi import WebSocket
 from pydantic import BaseModel
 from util.connectionManager import ConnectionManager
@@ -38,6 +38,9 @@ class GameConnectionManager(ConnectionManager):
         self.current_match: dict[str, str] = {}
 
     async def get_ws(self, username: str) -> WebSocket | None:
+        """
+        Get WebSocket connection from username
+        """
         ws = self.active_connections.get(username)
         if ws is None:
             await self.disconnect(username, None)
@@ -104,7 +107,7 @@ class GameConnectionManager(ConnectionManager):
 
     async def remove_listing(self, creator: str) -> None:
         """
-        Delete a match listing that you have created
+        Delete a match listing given creator's username
         """
         ws = await self.get_ws(creator)
         if ws is None:
@@ -147,6 +150,9 @@ class GameConnectionManager(ConnectionManager):
         )
 
     async def accept_listing(self, code: str, opp: str):
+        """
+        Accept a match listing
+        """
         opp_ws = await self.get_ws(opp)
         if opp_ws is None:
             return
@@ -245,6 +251,9 @@ class GameConnectionManager(ConnectionManager):
         self.current_match[username] = code
 
     async def add_listing_listener(self, username: str):
+        """
+        Notify user when listings are created
+        """
         ws = await self.get_ws(username)
         if ws is None:
             return
@@ -264,6 +273,9 @@ class GameConnectionManager(ConnectionManager):
         )
 
     async def add_match_listener(self, username: str):
+        """
+        Notify user when matches are started
+        """
         ws = await self.get_ws(username)
         if ws is None:
             return
@@ -283,6 +295,9 @@ class GameConnectionManager(ConnectionManager):
         )
 
     async def remove_listing_listener(self, username: str):
+        """
+        Remove users' listing notifier
+        """
         ws = await self.get_ws(username)
         if ws is None:
             return
@@ -303,6 +318,9 @@ class GameConnectionManager(ConnectionManager):
         await ws.send_json(["stoplistenListings", {"success": True}])
 
     async def remove_match_listener(self, username: str):
+        """
+        Remove a user's match notifier
+        """
         ws = await self.get_ws(username)
         if ws is None:
             return
@@ -323,6 +341,9 @@ class GameConnectionManager(ConnectionManager):
         await ws.send_json(["stoplistenMatches", {"success": True}])
 
     async def make_move(self, username: str, move: str):
+        """
+        Make a move if in a match
+        """
         ws = await self.get_ws(username)
         if ws is None:
             return
@@ -454,6 +475,10 @@ class GameConnectionManager(ConnectionManager):
                         )
 
     async def check_clock(self, username: str):
+        """
+        Check whether game should be over yet
+        Called when player has been timed-out client-side
+        """
         ws = await self.get_ws(username)
         if ws is None:
             return
@@ -527,6 +552,9 @@ class GameConnectionManager(ConnectionManager):
         await ws.send_json(["checkClock", {"success": True, "time_left": time_left}])
 
     async def resign(self, username: str):
+        """
+        User resigns match
+        """
         ws = await self.get_ws(username)
         if ws is None:
             return
@@ -585,6 +613,15 @@ class GameConnectionManager(ConnectionManager):
                 )
 
     async def draw(self, username: str, type: str):
+        """
+        Method for all draw related messages
+
+        Possible types:
+        offer - player offers draw
+        accept - player accepts draw offer
+        decline - player declines draw offer
+        disable - player disables draws entirely (to stop player from spamming draw offers)
+        """
         ws = await self.get_ws(username)
         if ws is None:
             return
@@ -685,6 +722,12 @@ class GameConnectionManager(ConnectionManager):
             self.private_matches[code] = game
 
     async def disconnect(self, username: str, ws: WebSocket | None):
+        """
+        Disconnects a user's WebSocket connection
+        Overrides parent disconnect method with extra functionality when a user is disconnected
+        Removes match listings made by user that is disconnected
+        """
+
         if username in self.active_connections and (
             (self.active_connections.get(username) == ws) or (ws is None)
         ):

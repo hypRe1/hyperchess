@@ -12,6 +12,13 @@ class ConnectionManager:
         self.active_connections: dict[str, WebSocket] = {}
 
     async def auth_user(self, ws: WebSocket) -> Users | None:
+        """
+        Authenticate a user via a WebSocket connection
+
+        Requests a JWT token from client
+        If authentication fails, the connection is closed
+        """
+
         await ws.send_json(["tokenRequest"])
         token = await ws.receive_text()
         try:
@@ -28,6 +35,12 @@ class ConnectionManager:
         return user
 
     async def connect(self, ws: WebSocket) -> Users | None:
+        """
+        Handles the connection of a user via a WebSocket
+        If a user is connected from another session, the previous session is disconnected
+        The current WebSocket connection is stored as the active connection for the user
+        """
+
         await ws.accept()
         user = await self.auth_user(ws)
         if user is None:
@@ -52,6 +65,11 @@ class ConnectionManager:
         return user
 
     async def disconnect(self, username: str, ws: WebSocket):
+        """
+        Disconnects a user's WebSocket connection
+        Removes WebSocket connection associated with the given user if it matches the given WebSocket
+        """
+
         if (
             username in self.active_connections
             and self.active_connections.get(username) == ws
@@ -59,6 +77,9 @@ class ConnectionManager:
             del self.active_connections[username]
 
     async def send_personal_message(self, username: str, msg: Any):
+        """
+        Send WebSocket message to a user given their username
+        """
         ws = self.active_connections.get(username)
         if ws is None:
             raise WebSocketException(
@@ -67,5 +88,8 @@ class ConnectionManager:
         await ws.send_json(msg)
 
     async def broadcast(self, msg: str):
+        """
+        Send WebSocket message to all connected users
+        """
         for ws in self.active_connections.values():
             await ws.send_text(msg)

@@ -526,6 +526,164 @@ class GameConnectionManager(ConnectionManager):
 
         await ws.send_json(["checkClock", {"success": True, "time_left": time_left}])
 
+    async def resign(self, username: str):
+        ws = await self.get_ws(username)
+        if ws is None:
+            return
+
+        if username not in self.current_match:
+            await ws.send_json(
+                [
+                    "resign",
+                    {
+                        "success": False,
+                        "detail": "You are not currently in a match",
+                    },
+                ]
+            )
+            return
+
+        code = self.current_match[username]
+        game = self.get_match_from_code(code)
+
+        if game is None:
+            await ws.send_json(
+                ["resign", {"success": False, "detail": "Game does not exist"}]
+            )
+            return
+        if game.game_over:
+            await ws.send_json(["resign", {"success": False, "detail": "Game ended"}])
+            return
+
+        game.game_over = True
+        game.result = Result.RESIGN
+        if username == game.white_player:
+            game.winner = False
+        elif username == game.black_player:
+            game.winner = True
+        else:
+            await ws.send_json(
+                [
+                    "resign",
+                    {"success": False, "detail": "You are not playing in this match"},
+                ]
+            )
+            return
+
+        for player in game.connected:
+            if player == username:
+                await ws.send_json(["resign", {"success": True}])
+                await ws.send_json(
+                    ["gameOver", {"result": game.result, "winner": game.winner}]
+                )
+                continue
+
+            player_ws = await self.get_ws(player)
+            if player_ws is not None:
+                await player_ws.send_json(
+                    ["gameOver", {"result": game.result, "winner": game.winner}]
+                )
+
+    async def draw(self, username: str, type: str):
+        ws = await self.get_ws(username)
+        if ws is None:
+            return
+
+        if username not in self.current_match:
+            await ws.send_json(
+                [
+                    "draw",
+                    {
+                        "success": False,
+                        "detail": "You are not currently in a match",
+                    },
+                ]
+            )
+            return
+
+        code = self.current_match[username]
+        game = self.get_match_from_code(code)
+
+        if game is None:
+            await ws.send_json(
+                ["draw", {"success": False, "detail": "Game does not exist"}]
+            )
+            return
+        if game.game_over:
+            await ws.send_json(["draw", {"success": False, "detail": "Game ended"}])
+            return
+
+        if username != game.white_player and username != game.black_player:
+            await ws.send_json(
+                [
+                    "draw",
+                    {"success": False, "detail": "You are not playing in this match"},
+                ]
+            )
+            return
+
+        if game.draw_disabled:
+            await ws.send_json(["draw", "error", "Draw offers have been disabled"])
+            return
+
+        match type:
+            case "offer":
+                if game.draw_offer is not None:
+                    await ws.send_json(
+                        ["draw", "error", "There is already an ongoing draw offer"]
+                    )
+                    return
+                game.draw_offer = username == game.white_player
+                opponent_ws = await self.get_ws(
+                    game.black_player if game.draw_offer else game.white_player
+                )
+                await opponent_ws.send_json(["draw", "offer"])
+                await ws.send_json(["draw", "sent"])
+            case "accept":
+                if (username == game.black_player) and game.draw_offer:
+                    game.game_over = True
+                    game.result = Result.AGREEMENT
+                    game.winner = None
+
+                    for player in game.connected:
+                        if player == username:
+                            await ws.send_json(["draw", {"success": True}])
+                            await ws.send_json(
+                                [
+                                    "gameOver",
+                                    {"result": game.result, "winner": game.winner},
+                                ]
+                            )
+                            continue
+
+                        player_ws = await self.get_ws(player)
+                        if player_ws is not None:
+                            await player_ws.send_json(
+                                [
+                                    "gameOver",
+                                    {"result": game.result, "winner": game.winner},
+                                ]
+                            )
+
+            case "decline":
+                opponent_ws = await self.get_ws(
+                    game.white_player if game.draw_offer else game.black_player
+                )
+                await opponent_ws.send_json(["draw", "decline"])
+                game.draw_offer = None
+
+            case "disable":
+                game.draw_disabled = True
+
+            case _:
+                await ws.send_json(["draw", "error", "Invalid draw type"])
+                return
+
+        if game.public:
+            self.public_matches[code] = game
+        else:
+            self.private_matches[code] = game
+
     async def disconnect(self, username: str, ws: WebSocket | None):
         if username in self.active_connections and (
             (self.active_connections.get(username) == ws) or (ws is None)

@@ -14,6 +14,7 @@
 	import FullScreenModal from '$lib/modals/fullScreen.svelte';
 	import VsPlayerCg from '$lib/components/vsPlayerCG.svelte';
 	import type { MatchModel } from '$lib/types/matchModelsTypes';
+	import DrawModal from '$lib/modals/draw.svelte';
 	export let data: PageData;
 
 	title.set(`Match [${data.code}]`);
@@ -50,6 +51,7 @@
 		'checkmate',
 		'resign',
 		'flagged',
+		'drawn by agreement',
 		'stalemate',
 		'insufficient material',
 		'repetition',
@@ -96,6 +98,24 @@
 		return `${Math.floor(seconds / 60)
 			.toString()
 			.padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
+	}
+
+	function resignBtn() {
+		function modalResp(r: boolean) {
+			if (r) sendMessage(JSON.stringify(['resign']));
+		}
+
+		const modal: ModalSettings = {
+			type: 'confirm',
+			title: 'Resign',
+			body: 'You will lose the match!',
+			response: (r: boolean) => modalResp(r)
+		};
+		modalStore.trigger(modal);
+	}
+
+	function drawBtn() {
+		sendMessage(JSON.stringify(['draw', 'offer']));
 	}
 
 	const handleMessage = (event: MessageEvent) => {
@@ -199,6 +219,60 @@
 					timeout: 2000
 				});
 				break;
+			case 'draw':
+				switch (msgData) {
+					case 'offer':
+						toastStore.trigger({
+							message: 'Draw offer recieved',
+							background: 'variant-filled-success',
+							timeout: 2000
+						});
+
+						function modalResp(accepted: boolean, disabled: boolean) {
+							accepted
+								? sendMessage(JSON.stringify(['draw', 'accept']))
+								: sendMessage(JSON.stringify(['draw', 'decline']));
+
+							if (disabled) sendMessage(JSON.stringify(['draw', 'disable']));
+						}
+
+						const modal: ModalSettings = {
+							type: 'component',
+							component: { ref: DrawModal },
+							title: 'Create Match',
+							response: (r) => modalResp(r[0], r[1])
+						};
+						modalStore.trigger(modal);
+						break;
+					case 'accept':
+						toastStore.trigger({
+							message: 'Draw offer accepted',
+							background: 'variant-filled-success',
+							timeout: 2000
+						});
+						break;
+					case 'sent':
+						toastStore.trigger({
+							message: 'Draw offer sent',
+							background: 'variant-filled-success',
+							timeout: 2000
+						});
+						break;
+					case 'decline':
+						toastStore.trigger({
+							message: 'Draw offer declined',
+							background: 'variant-filled-error',
+							timeout: 2000
+						});
+						break;
+					case 'error':
+						toastStore.trigger({
+							message: msg[2],
+							background: 'variant-filled-error',
+							timeout: 2000
+						});
+						break;
+				}
 		}
 	};
 
@@ -259,6 +333,18 @@
 	</div>
 	<div class="p-5 gap-3 overflow-y-scroll bg-surface-500/25">
 		<h2 class="h2">Chess Match</h2>
+		<button
+			on:click={resignBtn}
+			disabled={loading || match.game_over}
+			type="button"
+			class="btn variant-filled-primary">Resign</button
+		>
+		<button
+			on:click={drawBtn}
+			disabled={loading || match.game_over}
+			type="button"
+			class="btn variant-filled-primary">Offer draw</button
+		>
 
 		<div>
 			<table>

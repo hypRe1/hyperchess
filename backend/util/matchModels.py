@@ -12,10 +12,11 @@ class Result(IntEnum):
     CHECKMATE = 1
     RESIGN = 2
     FLAGGED = 3
-    STALEMATE = 4
-    INSUFFICIENT_MATERIAL = 5
-    REPETITION = 6
-    SEVENTYFIVE_MOVES = 7
+    AGREEMENT = 4
+    STALEMATE = 5
+    INSUFFICIENT_MATERIAL = 6
+    REPETITION = 7
+    SEVENTYFIVE_MOVES = 8
 
 
 class MatchModel(BaseModel):
@@ -53,6 +54,8 @@ class Match:
     winner: bool | None = None
     time_created: int = field(default_factory=lambda: int(t.time()))
     timings: list[float] = field(default_factory=list)
+    draw_offer: bool | None = None
+    draw_disabled: bool = False
 
     def to_match_model(self) -> MatchModel:
         return MatchModel(

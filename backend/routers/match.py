@@ -47,7 +47,9 @@ async def match(websocket: WebSocket):
                 case "makeMove":
                     await manager.make_move(user.username, data[1])
                 case "resign":
-                    pass
+                    await manager.resign(user.username)
+                case "draw":
+                    await manager.draw(user.username, data[1])
                 case "chat":
                     pass
                 case "checkClock":

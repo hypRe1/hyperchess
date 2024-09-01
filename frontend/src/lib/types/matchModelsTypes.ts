@@ -5,7 +5,7 @@
 /* Do not modify it by hand - just update the pydantic models and then re-run the script
 */
 
-export type Result = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
+export type Result = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
 export interface MatchModel {
   code: string;

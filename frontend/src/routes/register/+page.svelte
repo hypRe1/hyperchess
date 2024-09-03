@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { tick } from 'svelte';
 	import { goto } from '$app/navigation';
-	import type { ActionData } from './$types';
-	import { getToastStore } from '@skeletonlabs/skeleton';
 	import { title } from '$lib/stores/title';
+	import { getToastStore } from '@skeletonlabs/skeleton';
+	import { tick } from 'svelte';
+	import type { ActionData } from './$types';
 
 	title.set('Sign up');
 

@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { SlideToggle } from '@skeletonlabs/skeleton';
 	import PreviewCg from '$lib/components/previewCG.svelte';
-	import { getToastStore } from '@skeletonlabs/skeleton';
 	import { title } from '$lib/stores/title';
-	import type { Themes, Boards, Pieces } from '$lib/types/appearanceTypes';
+	import type { Boards, Pieces, Themes } from '$lib/types/appearanceTypes';
+	import { getToastStore, SlideToggle } from '@skeletonlabs/skeleton';
 	import type { PageData } from './$types';
 
 	export let data: PageData;

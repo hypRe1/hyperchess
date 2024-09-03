@@ -27,5 +27,17 @@ module.exports = {
 				parser: '@typescript-eslint/parser'
 			}
 		}
-	]
+	],
+	rules: {
+		'import/order': [
+			'warn',
+			{
+				alphabetize: {
+					order: 'asc',
+					caseInsensitive: true
+				},
+				'newlines-between': 'always'
+			}
+		]
+	},
 };

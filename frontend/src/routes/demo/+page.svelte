@@ -1,8 +1,8 @@
 <script lang="ts">
 	import Account from '$lib/components/Account.svelte';
+	import VsEngineCg from '$lib/components/vsEngineCG.svelte';
 	import { title } from '$lib/stores/title';
 	import type { PageData } from './$types';
-	import VsEngineCg from '$lib/components/vsEngineCG.svelte';
 
 	export let data: PageData;
 

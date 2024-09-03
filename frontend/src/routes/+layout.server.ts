@@ -1,5 +1,5 @@
-import type { LayoutServerLoad } from './$types'
-import type { PersonalUserResponse } from "$lib/types/userTypes"
+import type { PersonalUserResponse } from "$lib/types/userTypes";
+import type { LayoutServerLoad } from './$types';
 
 
 export const load: LayoutServerLoad = async ({ fetch, locals }) => {

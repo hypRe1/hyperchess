@@ -1,11 +1,10 @@
 <script lang="ts">
-	import type { PageData } from './$types';
-	import { FileButton } from '@skeletonlabs/skeleton';
-	import { getToastStore } from '@skeletonlabs/skeleton';
 	import Account from '$lib/components/Account.svelte';
 	import { title } from '$lib/stores/title';
 	import type { PersonalUserResponse } from '$lib/types/userTypes';
+	import { FileButton, getToastStore } from '@skeletonlabs/skeleton';
 	import { error } from '@sveltejs/kit';
+	import type { PageData } from './$types';
 
 	title.set('Account details');
 

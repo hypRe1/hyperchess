@@ -1,26 +1,26 @@
 <script lang="ts">
-	import type { PageData } from './$types';
+	import { goto } from '$app/navigation';
+	import CreateMatchModal from '$lib/modals/createMatch.svelte';
+	import FullScreenModal from '$lib/modals/fullScreen.svelte';
+	import {
+		addConnectionState,
+		closeSocket,
+		ConnectionState,
+		connectSocket,
+		sendMessage
+	} from '$lib/stores/websocket';
 	import type {
 		MatchListing,
 		MatchListingRequestForm
 	} from '$lib/types/gameConnectionManagerTypes';
 	import {
-		getToastStore,
 		getModalStore,
+		getToastStore,
 		type ModalComponent,
 		type ModalSettings
 	} from '@skeletonlabs/skeleton';
-	import CreateMatchModal from '$lib/modals/createMatch.svelte';
-	import FullScreenModal from '$lib/modals/fullScreen.svelte';
 	import { onMount } from 'svelte';
-	import {
-		connectSocket,
-		closeSocket,
-		sendMessage,
-		addConnectionState,
-		ConnectionState
-	} from '$lib/stores/websocket';
-	import { goto } from '$app/navigation';
+	import type { PageData } from './$types';
 
 	export let data: PageData;
 

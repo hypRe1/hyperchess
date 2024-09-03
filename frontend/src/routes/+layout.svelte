@@ -1,23 +1,29 @@
 <script lang="ts">
-	import '../app.postcss';
+	import { browser } from '$app/environment';
+	import Navigation from '$lib/components/Navigation.svelte';
+	import { title } from '$lib/stores/title';
+	import { arrow, autoUpdate, computePosition, flip, offset, shift } from '@floating-ui/dom';
 	import {
 		AppBar,
 		AppShell,
 		Avatar,
 		Drawer,
 		type DrawerSettings,
-		Toast,
+		getDrawerStore,
+		initializeStores,
+		Modal,
 		popup,
 		type PopupSettings,
-		initializeStores,
-		getDrawerStore,
-		Modal
+		storePopup,
+		Toast
 	} from '@skeletonlabs/skeleton';
-	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
-	import { title } from '$lib/stores/title';
-	import { browser } from '$app/environment';
+	import '../app.postcss';
+	import type { PageData } from './$types';
 
-	import { storePopup } from '@skeletonlabs/skeleton';
+	export let data: PageData;
+
+	initializeStores();
+
 	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
 
 	const accountPopup: PopupSettings = {
@@ -35,14 +41,10 @@
 		Matches: '/matches'
 	};
 
-	import Navigation from '$lib/components/Navigation.svelte';
-	import type { PageData } from './$types';
-
-	initializeStores();
+	// Hamburger drawer
 	const drawerStore = getDrawerStore();
 
 	const drawerSettings: DrawerSettings = {
-		// Provide your property overrides:
 		width: 'w-[200px]',
 		padding: 'p-4',
 		rounded: 'rounded-xl'
@@ -51,8 +53,6 @@
 	function drawerOpen(): void {
 		drawerStore.open(drawerSettings);
 	}
-
-	export let data: PageData;
 
 	$: {
 		if (browser) {

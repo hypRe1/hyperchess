@@ -93,7 +93,6 @@
 					}
 				}
 			});
-			console.log(chessground.getState());
 		}
 	}
 </script>

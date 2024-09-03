@@ -46,7 +46,6 @@ export function makeEngineMove(chessground: Chessground, chess: Chess, depth: nu
 
         if (response.ok) {
             const move = (await response.text()).slice(1, -1)
-            console.log(move)
             const move_chessjs = chess.move(move)
 
 

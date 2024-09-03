@@ -32,7 +32,7 @@ export const connectSocket = (onMessage: (message: MessageEvent) => void) => {
         const socket = new WebSocket("ws://127.0.0.1:8000/api/match/ws");
 
         socket.onopen = () => {
-            console.log('WebSocket connection established');
+            // console.log('WebSocket connection established');
         };
 
         socket.onmessage = (event) => {
@@ -40,7 +40,7 @@ export const connectSocket = (onMessage: (message: MessageEvent) => void) => {
         };
 
         socket.onclose = () => {
-            console.log('WebSocket connection closed');
+            // console.log('WebSocket connection closed');
         };
 
         socket.onerror = (error) => {
@@ -68,7 +68,7 @@ export const closeSocket = () => {
     socketStore.update((state) => {
         if (state.socket) {
             state.socket.close();
-            console.log('WebSocket connection closed from store');
+            // console.log('WebSocket connection closed from store');
         }
         return initialState;
     });

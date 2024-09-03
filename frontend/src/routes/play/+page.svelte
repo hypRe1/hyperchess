@@ -133,7 +133,6 @@
 		};
 	});
 	function createListing(listingForm: MatchListingRequestForm) {
-		console.log(listingForm);
 		sendMessage(JSON.stringify(['addListing', listingForm]));
 	}
 

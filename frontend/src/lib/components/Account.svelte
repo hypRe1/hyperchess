@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Avatar, popup } from '@skeletonlabs/skeleton';
 	import { page } from '$app/stores';
+	import { Avatar, popup } from '@skeletonlabs/skeleton';
 
 	export let avatar: string | undefined = undefined;
 	export let username: string | null | undefined;

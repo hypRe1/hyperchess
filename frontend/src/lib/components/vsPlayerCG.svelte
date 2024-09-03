@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { Chessground } from 'svelte-chessground';
 	import CustomCG from '$lib/components/CustomCG.svelte';
+	import { legalMoves, makePlayerMove } from '$lib/util';
 	import { Chess } from 'chess.js';
 	import { onMount } from 'svelte';
-	import { legalMoves, makePlayerMove } from '$lib/util';
+	import { Chessground } from 'svelte-chessground';
 
 	enum BoardMode {
 		white,
@@ -88,6 +88,7 @@
 				movable: {
 					color: mode == BoardMode.black ? 'black' : 'white',
 					events: {
+						// @ts-ignore
 						after: makePlayerMove(chessground, chess)
 					}
 				}

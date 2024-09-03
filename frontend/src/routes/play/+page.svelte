@@ -185,9 +185,8 @@
 	>Delete Match</button
 >
 
-<!-- Responsive Container (recommended) -->
+<!-- Listings table -->
 <div class="table-container">
-	<!-- Native Table Element -->
 	<table class="table table-interactive">
 		<thead>
 			<tr>

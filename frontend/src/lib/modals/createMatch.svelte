@@ -1,8 +1,7 @@
 <script lang="ts">
-	import type { SvelteComponent } from 'svelte';
 	import type { MatchListingRequestForm } from '$lib/types/gameConnectionManagerTypes';
+	import type { SvelteComponent } from 'svelte';
 
-	// Stores
 	import { getModalStore } from '@skeletonlabs/skeleton';
 
 	// Props
@@ -22,6 +21,7 @@
 	let rawTime: number = 9;
 	let rawBonus: number = 3;
 
+	/** Converts slider value to time in minutes. */
 	function convertRawTime(x: number): number {
 		if (x < 5) return x / 4;
 		else if (x < 7) return x / 2 - 1;
@@ -30,6 +30,7 @@
 		else return 15 * x - 390;
 	}
 
+	/** Converts slider value to bonus in seconds. */
 	function convertRawBonus(x: number): number {
 		if (x < 21) return x;
 		else if (x < 26) return 5 * x - 80;
@@ -45,7 +46,6 @@
 		formData.bonus = convertRawBonus(rawBonus);
 	}
 
-	// We've created a custom submit function to pass the response and close the modal.
 	function onFormSubmit(): void {
 		if ($modalStore[0].response) $modalStore[0].response(formData);
 		modalStore.close();
@@ -57,7 +57,7 @@
 	const cForm = 'p-4 space-y-4 rounded-container-token';
 </script>
 
-<!-- @component This example creates a simple form modal. -->
+<!-- @component Form modal for creating match listings. -->
 
 {#if $modalStore[0]}
 	<div class="modal-example-form {cBase}">

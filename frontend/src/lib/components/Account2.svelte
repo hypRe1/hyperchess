@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { getProfile } from '$lib/util';
 	import Account from '$lib/components/Account.svelte';
+	import { getProfile } from '$lib/util';
 
 	export let username: string;
 	export let loading: boolean;

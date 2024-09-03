@@ -1,20 +1,20 @@
 <script lang="ts">
 	import Account from '$lib/components/Account2.svelte';
+	import VsPlayerCg from '$lib/components/vsPlayerCG.svelte';
+	import DrawModal from '$lib/modals/draw.svelte';
+	import FullScreenModal from '$lib/modals/fullScreen.svelte';
 	import { title } from '$lib/stores/title';
-	import type { PageData } from './$types';
 	import {
+		closeSocket,
 		ConnectionState,
 		connectSocket,
-		closeSocket,
-		sendMessage,
-		hasConnectionState
+		hasConnectionState,
+		sendMessage
 	} from '$lib/stores/websocket';
-	import { onMount } from 'svelte';
-	import { getToastStore, getModalStore, type ModalSettings } from '@skeletonlabs/skeleton';
-	import FullScreenModal from '$lib/modals/fullScreen.svelte';
-	import VsPlayerCg from '$lib/components/vsPlayerCG.svelte';
 	import type { MatchModel } from '$lib/types/matchModelsTypes';
-	import DrawModal from '$lib/modals/draw.svelte';
+	import { getModalStore, getToastStore, type ModalSettings } from '@skeletonlabs/skeleton';
+	import { onMount } from 'svelte';
+	import type { PageData } from './$types';
 	export let data: PageData;
 
 	title.set(`Match [${data.code}]`);
@@ -295,6 +295,7 @@
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
 	<div class="space-y-1">
+		<!-- Player above board -->
 		<div class="columns-3">
 			{#if boardMode !== BoardMode.black}
 				<Account username={loading ? 'Black player' : match.black_player} {loading}></Account>
@@ -307,6 +308,7 @@
 			{/if}
 		</div>
 
+		<!-- Board -->
 		<div>
 			<VsPlayerCg
 				bind:history
@@ -319,6 +321,7 @@
 			></VsPlayerCg>
 		</div>
 
+		<!-- Player below board -->
 		<div class="columns-3">
 			{#if boardMode === BoardMode.black}
 				<Account username={loading ? 'Black player' : match.black_player} {loading}></Account>
@@ -331,6 +334,8 @@
 			{/if}
 		</div>
 	</div>
+
+	<!-- Chess match menu -->
 	<div class="p-5 gap-3 overflow-y-scroll bg-surface-500/25">
 		<h2 class="h2">Chess Match</h2>
 		<button
@@ -347,6 +352,7 @@
 		>
 
 		<div>
+			<!-- Moves -->
 			<table>
 				<tbody>
 					{#each moves.slice(0, Math.ceil(moves.length / 2)) as _, index}
@@ -358,6 +364,8 @@
 					{/each}
 				</tbody>
 			</table>
+
+			<!-- Match result -->
 			{#if match && match.game_over}
 				<span>Game over: {result}</span>
 				<br />
@@ -379,21 +387,21 @@
 
 <style>
 	table {
-		border-collapse: collapse; /* Ensures that spacing is controlled by padding */
-		width: 100%; /* Makes the table take up the full width of the container */
+		border-collapse: collapse;
+		width: 100%;
 	}
 
 	td {
-		border-bottom: 1px solid #ddd; /* Optional: Adds a border between rows */
+		border-bottom: 1px solid #ddd;
 	}
 
 	td:first-child {
-		width: 8%; /* Adjust the percentage as needed */
-		white-space: nowrap; /* Prevents the number from wrapping */
+		width: 8%;
+		white-space: nowrap;
 	}
 
 	td:nth-child(2) {
-		width: 16%; /* Adjust the percentage as needed */
-		white-space: nowrap; /* Prevents the number from wrapping */
+		width: 16%;
+		white-space: nowrap;
 	}
 </style>

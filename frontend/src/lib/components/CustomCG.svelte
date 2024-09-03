@@ -1,14 +1,15 @@
 <script lang="ts">
-	import { Chessground } from 'svelte-chessground';
+	import { legalMoves } from '$lib/util';
 	import { Chess } from 'chess.js';
 	import { onMount } from 'svelte';
-	import { legalMoves } from '$lib/util';
-	export let piece: string;
-	export let board: string;
-	export let config;
+	import { Chessground } from 'svelte-chessground';
+
 	import '$lib/board-themes/base.css';
 	import '$lib/board-themes/custom.css';
 
+	export let piece: string;
+	export let board: string;
+	export let config;
 	export let chess = new Chess();
 	export let chessground: Chessground;
 	let assigned: boolean = false;

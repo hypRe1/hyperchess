@@ -1,4 +1,4 @@
-import { writable, get } from 'svelte/store';
+import { get, writable } from 'svelte/store';
 
 export enum ConnectionState {
     MATCH_PLAYING,

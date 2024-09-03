@@ -77,6 +77,7 @@
 	<title>{$title}</title>
 </svelte:head>
 
+<!-- Account popup -->
 <nav class="card p-4 list-nav" data-popup="accountPopup">
 	<ul>
 		{#each Object.entries(accountPopupLinks) as [title, url]}

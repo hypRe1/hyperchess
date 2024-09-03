@@ -1,3 +1,4 @@
+import json
 import os
 from enum import StrEnum
 
@@ -43,6 +44,14 @@ Pieces = StrEnum(
     "Pieces",
     {p.replace("-", "_").upper(): p for p in os.listdir(BOARD_THEMES_PATH + "pieces")},
 )
+
+appearances = {
+    "themes": [t.value for t in Themes],
+    "boards": [b.value for b in Boards],
+    "pieces": [p.value for p in Pieces],
+}
+with open(f"{BOARD_THEMES_PATH}appearances.json", "w") as fp:
+    json.dump(appearances, fp)
 
 
 class UserAppearance(BaseModel):

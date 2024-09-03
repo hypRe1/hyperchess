@@ -378,7 +378,9 @@ async def edit_user_info(
     Edit user information (avatar, about_me, country)
     """
 
-    if edit_user_request.avatar is not None:
+    if edit_user_request.avatar == default_pfp_b64[22:]:
+        user.picture = None
+    elif edit_user_request.avatar is not None:
         try:
             image = Image.open(
                 io.BytesIO(base64.decodebytes(bytes(edit_user_request.avatar, "utf-8")))

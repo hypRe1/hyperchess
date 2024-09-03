@@ -50,9 +50,6 @@
 	}
 
 	async function saveChanges() {
-		const form = new FormData();
-		form.append('file', avatar);
-
 		const resp = await fetch('/account/saveChanges', {
 			method: 'PATCH',
 			headers: {

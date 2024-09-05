@@ -242,7 +242,7 @@
 						const modal: ModalSettings = {
 							type: 'component',
 							component: { ref: DrawModal },
-							title: 'Create Match',
+							title: 'Draw offer',
 							response: (r) => modalResp(r[0], r[1])
 						};
 						modalStore.trigger(modal);

@@ -24,6 +24,7 @@
 		<header class={cHeader}>
 			{$modalStore[0].title ?? '(title missing)'}
 		</header>
+		<p>Your opponent has offered you a draw</p>
 
 		<!-- prettier-ignore -->
 		<footer class="modal-footer {parent.regionFooter}">

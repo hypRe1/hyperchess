@@ -412,7 +412,7 @@ class GameConnectionManager(ConnectionManager):
         else:
             time_spent = time.time() - game.time_started - sum(game.timings)
             game.timings.append(time_spent)
-            time_left = game.time * 60 - sum(
+            time_left = game.time * 60 + game.bonus - sum(
                 [
                     game.timings[i] - game.bonus
                     for i in range(int(not game.board.turn), len(game.timings), 2)
@@ -526,7 +526,7 @@ class GameConnectionManager(ConnectionManager):
 
         time_spent = time.time() - game.time_started - sum(game.timings)
         time_left = (
-            game.time * 60
+            game.time * 60 + game.bonus
             - sum(
                 [
                     game.timings[i] - game.bonus

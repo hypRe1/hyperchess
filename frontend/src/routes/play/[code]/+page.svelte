@@ -71,13 +71,15 @@
 		let seconds = Math.round(d.getTime() / 1000);
 		let time_spent = seconds - match.time_started! - match.timings!.reduce((a, b) => a + b, 0);
 		let white_time_left =
-			match.time * 60 -
+			match.time * 60 +
+			match.bonus -
 			match
 				.timings!.slice(0)
 				.filter((_, i) => i % 2 === 0)
 				.reduce((acc, timing) => acc + (timing - match.bonus), 0);
 		let black_time_left =
-			match.time * 60 -
+			match.time * 60 +
+			match.bonus -
 			match
 				.timings!.slice(1)
 				.filter((_, i) => i % 2 === 0)
@@ -171,7 +173,8 @@
 						let time_spent =
 							seconds - match.time_started! - match.timings!.reduce((a, b) => a + b, 0);
 						let time_left =
-							match.time * 60 -
+							match.time * 60 +
+							match.bonus -
 							time_spent -
 							match
 								.timings!.slice(+!_turn)

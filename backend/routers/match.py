@@ -1,9 +1,85 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from pydantic import ValidationError
+import datetime
+import random
+
+from database import db_dependency
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
+from models import Matches, UserMatches
+from pydantic import BaseModel, Field, ValidationError
+from routers.user import user_dependency
+from sqlalchemy import select
+from util.gameCompressor import compress, decompress
 from util.gameConnectionManager import GameConnectionManager, MatchListingRequestForm
 
 router = APIRouter(prefix="/match", tags=["match-listing"])
 manager = GameConnectionManager()
+
+
+class Match(BaseModel):
+    white: str
+    black: str
+    moves: list[str]
+    winner: bool
+    result: int
+    time_started: datetime.datetime = Field(default_factory=datetime.datetime.now)
+
+
+@router.post(
+    "/",
+    status_code=200,
+)
+async def add_match(request: Match, user: user_dependency, db: db_dependency):
+    try:
+        compressed_moves = compress(request.moves)
+    except ValueError:
+        raise HTTPException(400, detail="Cannot process illegal move")
+
+    match_id = random.randint(0, 2000000000)
+
+    create_match_model = Match(
+        id=match_id,
+        white=request.white,
+        black=request.black,
+        moves=compressed_moves,
+        winner=request.winner,
+        result=request.result,
+        time_started=request.time_started,
+        hyperchess=False,
+    )
+
+    create_user_match_model = UserMatches(username=user.username, matchId=match_id)
+
+    db.add(create_match_model)
+    db.add(create_user_match_model)
+    try:
+        await db.commit()
+    except Exception:
+        raise HTTPException(500, detail="Failed to add match to database")
+
+
+@router.get(
+    "/",
+    status_code=200,
+)
+async def get_match(id: int, db: db_dependency):
+    statement = select(Matches).filter_by(id=id)
+    result = await db.execute(statement=statement)
+
+    match_model = result.scalar_one_or_none()
+    if match_model is None:
+        raise HTTPException(404, detail="Match does not exist")
+
+    try:
+        moves = [m.uci() for m in decompress(match_model.moves).move_stack]
+    except IndexError:
+        raise HTTPException(500, detail="Failed to decompress match moves")
+
+    return Match(
+        white=match_model.white,
+        black=match_model.black,
+        moves=moves,
+        winner=match_model.winner,
+        result=match_model.result,
+    )
 
 
 @router.websocket("/ws")

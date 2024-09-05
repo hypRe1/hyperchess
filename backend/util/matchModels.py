@@ -1,4 +1,4 @@
-import time as t
+import time
 from dataclasses import dataclass, field
 from enum import IntEnum
 from typing import List
@@ -31,7 +31,7 @@ class MatchModel(BaseModel):
     game_over: bool = False
     result: Result = Result.ONGOING
     winner: bool | None = None
-    time_created: int = Field(default_factory=t.time)
+    time_started: float
     timings: List[float] = Field(default_factory=list)
 
     @field_serializer("result")
@@ -52,7 +52,7 @@ class Match:
     game_over: bool = False
     result: Result = Result.ONGOING
     winner: bool | None = None
-    time_created: int = field(default_factory=lambda: int(t.time()))
+    time_started: float = field(default_factory=time.time)
     timings: list[float] = field(default_factory=list)
     draw_offer: bool | None = None
     draw_disabled: bool = False
@@ -70,6 +70,6 @@ class Match:
             game_over=self.game_over,
             result=self.result,
             winner=self.winner,
-            time_created=self.time_created,
+            time_started=self.time_started,
             timings=self.timings,
         )

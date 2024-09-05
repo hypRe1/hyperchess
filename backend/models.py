@@ -1,5 +1,14 @@
 from database import Base
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Table
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    SmallInteger,
+    String,
+    Table,
+)
 from sqlalchemy.dialects.postgresql import BYTEA
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.schema import ForeignKey
@@ -39,6 +48,17 @@ class Matches(Base):
     white = Column(String(length=255))
     black = Column(String(length=255))
     moves = Column(BYTEA)
+    winner = Column(Boolean, nullable=False)
+    result = Column(SmallInteger)
+    hyperchess = Column(Boolean)
+    time_started = Column(DateTime)
+
+
+class UserMatches(Base):
+    __tablename__ = "user_matches"
+
+    username = mapped_column(ForeignKey("users.username"), primary_key=True)
+    matchId = mapped_column(ForeignKey("matches.id"), primary_key=True)
 
 
 class Mistakes(Base):

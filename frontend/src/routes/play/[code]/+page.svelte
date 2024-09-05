@@ -69,7 +69,7 @@
 		let _turn = turn();
 		let d = new Date();
 		let seconds = Math.round(d.getTime() / 1000);
-		let time_spent = seconds - match.time_created! - match.timings!.reduce((a, b) => a + b, 0);
+		let time_spent = seconds - match.time_started! - match.timings!.reduce((a, b) => a + b, 0);
 		let white_time_left =
 			match.time * 60 -
 			match
@@ -169,7 +169,7 @@
 						let d = new Date();
 						let seconds = Math.round(d.getTime() / 1000);
 						let time_spent =
-							seconds - match.time_created! - match.timings!.reduce((a, b) => a + b, 0);
+							seconds - match.time_started! - match.timings!.reduce((a, b) => a + b, 0);
 						let time_left =
 							match.time * 60 -
 							time_spent -

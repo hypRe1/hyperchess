@@ -2,7 +2,7 @@ import base64
 import io
 import logging
 import os
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Annotated, Literal
 
 from database import db_dependency
@@ -189,8 +189,8 @@ async def authenticate_user(
 def create_access_token(username: str, expires_delta: timedelta) -> str:
     encode = {
         "sub": username,
-        "iat": datetime.utcnow(),
-        "exp": datetime.utcnow() + expires_delta,
+        "iat": datetime.now(UTC),
+        "exp": datetime.now(UTC) + expires_delta,
     }
     return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)
 

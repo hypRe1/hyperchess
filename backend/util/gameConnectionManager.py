@@ -3,9 +3,11 @@ import string
 import time
 
 from chess import COLORS, Color, IllegalMoveError, InvalidMoveError
+from database import get_db
 from fastapi import WebSocket
 from pydantic import BaseModel
 from util.connectionManager import ConnectionManager
+from util.gameCompressor import compress
 from util.matchModels import Match, Result
 
 
@@ -408,7 +410,7 @@ class GameConnectionManager(ConnectionManager):
                 ]
             )
         else:
-            time_spent = time.time() - game.time_created - sum(game.timings)
+            time_spent = time.time() - game.time_started - sum(game.timings)
             game.timings.append(time_spent)
             time_left = game.time * 60 - sum(
                 [
@@ -522,7 +524,7 @@ class GameConnectionManager(ConnectionManager):
             )
             return
 
-        time_spent = time.time() - game.time_created - sum(game.timings)
+        time_spent = time.time() - game.time_started - sum(game.timings)
         time_left = (
             game.time * 60
             - sum(
@@ -720,6 +722,19 @@ class GameConnectionManager(ConnectionManager):
             self.public_matches[code] = game
         else:
             self.private_matches[code] = game
+
+    async def archive_match(self, code):
+        match = self.get_match_from_code(code)
+        if match is None:
+            raise ValueError
+        if not match.game_over:
+            raise ValueError
+
+        moves_compressed = compress(match.board.move_stack)
+        match_id = random.randint(0, 2000000000)
+
+        async with get_db() as db:
+            pass
 
     async def disconnect(self, username: str, ws: WebSocket | None):
         """

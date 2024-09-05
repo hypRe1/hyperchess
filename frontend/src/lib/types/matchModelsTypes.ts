@@ -19,6 +19,6 @@ export interface MatchModel {
   game_over?: boolean;
   result?: Result & number;
   winner?: boolean | null;
-  time_created?: number;
+  time_started: number;
   timings?: number[];
 }

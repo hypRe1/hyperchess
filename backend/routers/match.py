@@ -14,7 +14,7 @@ router = APIRouter(prefix="/match", tags=["match-listing"])
 manager = GameConnectionManager()
 
 
-class Match(BaseModel):
+class MatchRequest(BaseModel):
     white: str
     black: str
     moves: list[str]
@@ -23,11 +23,16 @@ class Match(BaseModel):
     time_started: datetime.datetime = Field(default_factory=datetime.datetime.now)
 
 
+class MatchResponse(MatchRequest):
+    id: int
+    hyperchess: bool
+
+
 @router.post(
     "/",
-    status_code=200,
+    status_code=201,
 )
-async def add_match(request: Match, user: user_dependency, db: db_dependency):
+async def add_match(request: MatchRequest, user: user_dependency, db: db_dependency):
     try:
         compressed_moves = compress(request.moves)
     except ValueError:
@@ -35,7 +40,7 @@ async def add_match(request: Match, user: user_dependency, db: db_dependency):
 
     match_id = random.randint(0, 2000000000)
 
-    create_match_model = Match(
+    create_match_model = Matches(
         id=match_id,
         white=request.white,
         black=request.black,
@@ -57,29 +62,63 @@ async def add_match(request: Match, user: user_dependency, db: db_dependency):
 
 
 @router.get(
-    "/",
+    "/{id}",
     status_code=200,
 )
 async def get_match(id: int, db: db_dependency):
     statement = select(Matches).filter_by(id=id)
     result = await db.execute(statement=statement)
 
-    match_model = result.scalar_one_or_none()
-    if match_model is None:
+    match = result.scalar_one_or_none()
+    if match is None:
         raise HTTPException(404, detail="Match does not exist")
 
     try:
-        moves = [m.uci() for m in decompress(match_model.moves).move_stack]
+        moves = [m.uci() for m in decompress(match.moves).move_stack]
     except IndexError:
         raise HTTPException(500, detail="Failed to decompress match moves")
 
-    return Match(
-        white=match_model.white,
-        black=match_model.black,
+    return MatchResponse(
+        id=match.id,
+        white=match.white,
+        black=match.black,
         moves=moves,
-        winner=match_model.winner,
-        result=match_model.result,
+        winner=match.winner,
+        hyperchess=match.hyperchess,
+        result=match.result,
     )
+
+
+@router.get("/", status_code=200)
+async def get_matches(user: user_dependency, db: db_dependency):
+    statement = (
+        select(Matches)
+        .join(UserMatches, Matches.id == UserMatches.matchId)
+        .where(UserMatches.username == user.username)
+    )
+
+    result = await db.execute(statement)
+    compressedMatches = result.scalars().all()
+    decompressedMatches = []
+    for match in compressedMatches:
+        try:
+            moves = [m.uci() for m in decompress(match.moves).move_stack]
+        except IndexError:
+            moves = []
+        decompressedMatches.append(
+            MatchResponse(
+                id=match.id,
+                white=match.white,
+                black=match.black,
+                moves=moves,
+                winner=match.winner,
+                result=match.result,
+                hyperchess=match.hyperchess,
+                time_started=match.time_started,
+            )
+        )
+
+    return decompressedMatches
 
 
 @router.websocket("/ws")

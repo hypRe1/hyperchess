@@ -1,3 +1,4 @@
+import datetime
 import random
 import string
 import time
@@ -5,7 +6,9 @@ import time
 from chess import COLORS, Color, IllegalMoveError, InvalidMoveError
 from database import get_db
 from fastapi import WebSocket
+from models import Matches, UserMatches
 from pydantic import BaseModel
+from sqlalchemy import insert
 from util.connectionManager import ConnectionManager
 from util.gameCompressor import compress
 from util.matchModels import Match, Result
@@ -492,6 +495,9 @@ class GameConnectionManager(ConnectionManager):
                             ["gameOver", {"result": game.result, "winner": game.winner}]
                         )
 
+            if game.game_over:
+                await self.archive_match(code)
+
     async def check_clock(self, username: str):
         """
         Check whether game should be over yet
@@ -568,6 +574,8 @@ class GameConnectionManager(ConnectionManager):
                         ["gameOver", {"result": game.result, "winner": game.winner}]
                     )
 
+            await self.archive_match(code)
+
         await ws.send_json(["checkClock", {"success": True, "time_left": time_left}])
 
     async def resign(self, username: str):
@@ -630,6 +638,8 @@ class GameConnectionManager(ConnectionManager):
                 await player_ws.send_json(
                     ["gameOver", {"result": game.result, "winner": game.winner}]
                 )
+
+        await self.archive_match(code)
 
     async def draw(self, username: str, type: str):
         """
@@ -740,6 +750,9 @@ class GameConnectionManager(ConnectionManager):
         else:
             self.private_matches[code] = game
 
+        if game.game_over:
+            await self.archive_match(code)
+
     async def archive_match(self, code):
         match = self.get_match_from_code(code)
         if match is None:
@@ -750,8 +763,26 @@ class GameConnectionManager(ConnectionManager):
         moves_compressed = compress(match.board.move_stack)
         match_id = random.randint(0, 2000000000)
 
-        async with get_db() as db:
-            pass
+        create_match_model = Matches(
+            id=match_id,
+            white=match.white_player,
+            black=match.black_player,
+            moves=moves_compressed,
+            winner=match.winner,
+            result=match.result,
+            time_started=datetime.datetime.fromtimestamp(match.time_started),
+            hyperchess=True,
+        )
+
+        async for db in get_db():
+            db.add(create_match_model)
+            db.add(UserMatches(username=match.white_player, matchId=match_id))
+            db.add(UserMatches(username=match.black_player, matchId=match_id))
+
+            try:
+                await db.commit()
+            except Exception as e:
+                print(e)
 
     async def disconnect(self, username: str, ws: WebSocket | None):
         """

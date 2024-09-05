@@ -74,6 +74,18 @@ class GameConnectionManager(ConnectionManager):
             )
             return
 
+        if form_data.time == 0 and form_data.bonus == 0:
+            await ws.send_json(
+                [
+                    "addListing",
+                    {
+                        "success": False,
+                        "detail": "You cannot create a match with no time",
+                    },
+                ]
+            )
+            return
+
         code = "".join(random.choices(string.ascii_uppercase, k=4))
 
         match_listing = MatchListing(
@@ -412,11 +424,15 @@ class GameConnectionManager(ConnectionManager):
         else:
             time_spent = time.time() - game.time_started - sum(game.timings)
             game.timings.append(time_spent)
-            time_left = game.time * 60 + game.bonus - sum(
-                [
-                    game.timings[i] - game.bonus
-                    for i in range(int(not game.board.turn), len(game.timings), 2)
-                ]
+            time_left = (
+                game.time * 60
+                + game.bonus
+                - sum(
+                    [
+                        game.timings[i] - game.bonus
+                        for i in range(int(not game.board.turn), len(game.timings), 2)
+                    ]
+                )
             )
 
             if time_left < 0:
@@ -526,7 +542,8 @@ class GameConnectionManager(ConnectionManager):
 
         time_spent = time.time() - game.time_started - sum(game.timings)
         time_left = (
-            game.time * 60 + game.bonus
+            game.time * 60
+            + game.bonus
             - sum(
                 [
                     game.timings[i] - game.bonus

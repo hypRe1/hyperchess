@@ -16,6 +16,7 @@
 	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
 	export let data: PageData;
+	import { error } from '@sveltejs/kit';
 
 	title.set(`Match [${data.code}]`);
 
@@ -145,6 +146,15 @@
 				modalStore.trigger(modal);
 				break;
 			case 'joinMatch':
+				if (msgData.success === false) {
+					toastStore.trigger({
+						message: msgData.detail,
+						background: 'variant-filled-error',
+						timeout: 2000
+					});
+					throw error(404);
+				}
+
 				loading = false;
 				match = msgData;
 

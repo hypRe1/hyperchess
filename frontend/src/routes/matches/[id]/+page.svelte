@@ -97,6 +97,7 @@
 					</tbody>
 				</table>
 				<div>
+					<button type="button" on:click={flip} class="btn-icon variant-filled">🔁</button>
 					<button type="button" on:click={first} class="btn-icon variant-filled">⏪</button>
 					<button type="button" on:click={back} class="btn-icon variant-filled">◀️</button>
 					<button type="button" on:click={forward} class="btn-icon variant-filled">▶️</button>

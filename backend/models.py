@@ -51,6 +51,8 @@ class Matches(Base):
     winner = Column(Boolean, nullable=False)
     result = Column(SmallInteger)
     hyperchess = Column(Boolean)
+    time = Column(SmallInteger)
+    bonus = Column(SmallInteger)
     time_started = Column(DateTime)
 
 

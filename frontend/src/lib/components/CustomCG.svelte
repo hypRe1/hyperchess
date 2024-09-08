@@ -12,6 +12,7 @@
 	export let config;
 	export let chess = new Chess();
 	export let chessground: Chessground;
+	export let fen: string = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 	let assigned: boolean = false;
 
 	onMount(async () => {
@@ -88,4 +89,4 @@
 	}
 </script>
 
-<Chessground class="cg-base piece-{piece} board-{board}" bind:this={chessground} {config} />
+<Chessground class="cg-base piece-{piece} board-{board}" {fen} bind:this={chessground} {config} />

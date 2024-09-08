@@ -770,6 +770,8 @@ class GameConnectionManager(ConnectionManager):
             moves=moves_compressed,
             winner=match.winner,
             result=match.result,
+            time=match.time,
+            bonus=match.bonus,
             time_started=datetime.datetime.fromtimestamp(match.time_started),
             hyperchess=True,
         )

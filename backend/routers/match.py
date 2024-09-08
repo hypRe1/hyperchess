@@ -7,10 +7,10 @@ from models import Matches, UserMatches
 from pydantic import BaseModel, Field, ValidationError
 from routers.user import user_dependency
 from sqlalchemy import select
-from util.gameCompressor import compress, decompress
+from util.gameCompressor import compress, decompress_board, decompress_moves
 from util.gameConnectionManager import GameConnectionManager, MatchListingRequestForm
 
-router = APIRouter(prefix="/match", tags=["match-listing"])
+router = APIRouter(prefix="/match", tags=["match"])
 manager = GameConnectionManager()
 
 
@@ -20,11 +20,27 @@ class MatchRequest(BaseModel):
     moves: list[str]
     winner: bool
     result: int
+    time: int
+    bonus: int
     time_started: datetime.datetime = Field(default_factory=datetime.datetime.now)
 
 
 class MatchResponse(MatchRequest):
     id: int
+    hyperchess: bool
+
+
+class MatchesResponse(BaseModel):
+    id: int
+    white: str
+    black: str
+    n_moves: int
+    fen: str
+    winner: bool
+    result: int
+    time: int
+    bonus: int
+    time_started: datetime.datetime = Field(default_factory=datetime.datetime.now)
     hyperchess: bool
 
 
@@ -73,18 +89,15 @@ async def get_match(id: int, db: db_dependency):
     if match is None:
         raise HTTPException(404, detail="Match does not exist")
 
-    try:
-        moves = [m.uci() for m in decompress(match.moves).move_stack]
-    except IndexError:
-        raise HTTPException(500, detail="Failed to decompress match moves")
-
     return MatchResponse(
         id=match.id,
         white=match.white,
         black=match.black,
-        moves=moves,
+        moves=decompress_moves(match.moves),
         winner=match.winner,
         hyperchess=match.hyperchess,
+        time=match.time,
+        bonus=match.bonus,
         result=match.result,
     )
 
@@ -95,25 +108,26 @@ async def get_matches(user: user_dependency, db: db_dependency):
         select(Matches)
         .join(UserMatches, Matches.id == UserMatches.matchId)
         .where(UserMatches.username == user.username)
+        .order_by(Matches.time_started.desc())
     )
 
     result = await db.execute(statement)
     compressedMatches = result.scalars().all()
     decompressedMatches = []
     for match in compressedMatches:
-        try:
-            moves = [m.uci() for m in decompress(match.moves).move_stack]
-        except IndexError:
-            moves = []
+        board = decompress_board(match.moves)
         decompressedMatches.append(
-            MatchResponse(
+            MatchesResponse(
                 id=match.id,
                 white=match.white,
                 black=match.black,
-                moves=moves,
+                n_moves=len(board.move_stack),
+                fen=board.fen(),
                 winner=match.winner,
                 result=match.result,
                 hyperchess=match.hyperchess,
+                time=match.time,
+                bonus=match.bonus,
                 time_started=match.time_started,
             )
         )

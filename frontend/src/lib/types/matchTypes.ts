@@ -17,6 +17,8 @@ export interface MatchRequest {
   moves: string[];
   winner: boolean;
   result: number;
+  time: number;
+  bonus: number;
   time_started?: string;
 }
 export interface MatchResponse {
@@ -25,7 +27,22 @@ export interface MatchResponse {
   moves: string[];
   winner: boolean;
   result: number;
+  time: number;
+  bonus: number;
   time_started?: string;
   id: number;
+  hyperchess: boolean;
+}
+export interface MatchesResponse {
+  id: number;
+  white: string;
+  black: string;
+  n_moves: number;
+  fen: string;
+  winner: boolean;
+  result: number;
+  time: number;
+  bonus: number;
+  time_started?: string;
   hyperchess: boolean;
 }

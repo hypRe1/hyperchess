@@ -13,9 +13,19 @@ def compress(moves: list[chess.Move | str]):
     return compressed
 
 
-def decompress(compressed: bytearray):
+def decompress_board(compressed: bytearray):
     board = chess.Board()
     for b in compressed:
         move = list(board.legal_moves)[b]
         board.push(move)
     return board
+
+
+def decompress_moves(compressed: bytearray):
+    moves = []
+    board = chess.Board()
+    for b in compressed:
+        move = list(board.legal_moves)[b]
+        moves.append(board.san(move))
+        board.push(move)
+    return moves

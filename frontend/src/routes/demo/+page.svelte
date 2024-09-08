@@ -43,16 +43,19 @@
 				about_me="The powerful chess engine"
 			></Account>
 		</div>
-		<VsEngineCg
-			bind:depth
-			bind:engine
-			bind:piece
-			bind:board
-			bind:undo
-			bind:flipBoard
-			bind:reset
-			bind:load_fen
-		></VsEngineCg>
+		<div class="size-5/6">
+			<VsEngineCg
+				bind:depth
+				bind:engine
+				bind:piece
+				bind:board
+				bind:undo
+				bind:flipBoard
+				bind:reset
+				bind:load_fen
+			></VsEngineCg>
+		</div>
+
 		<div>
 			<Account
 				avatar={data.profile?.avatar}

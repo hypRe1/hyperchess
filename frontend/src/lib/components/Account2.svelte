@@ -3,7 +3,7 @@
 	import { getProfile } from '$lib/util';
 
 	export let username: string;
-	export let loading: boolean;
+	export let loading: boolean = false;
 </script>
 
 {#if loading}

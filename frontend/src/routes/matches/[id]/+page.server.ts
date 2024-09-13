@@ -1,7 +1,6 @@
 import type { MatchResponse } from "$lib/types/matchTypes";
-import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
-import type { Action, Actions } from './$types'
+import type { Action, Actions, PageServerLoad } from './$types';
 
 
 export const load: PageServerLoad = async ({ fetch, locals, params }) => {

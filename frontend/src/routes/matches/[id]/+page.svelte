@@ -1,12 +1,10 @@
 <script lang="ts">
-	import Account from '$lib/components/Account2.svelte';
-	import type { PageData } from './$types';
-	import AnalysisCG from '$lib/components/AnalysisCG.svelte';
-	import { onMount } from 'svelte';
 	import { enhance } from '$app/forms';
+	import Account from '$lib/components/Account2.svelte';
+	import AnalysisCG from '$lib/components/AnalysisCG.svelte';
 	import { getToastStore } from '@skeletonlabs/skeleton';
-	import { tick } from 'svelte';
-	import type { ActionData } from './$types';
+	import { onMount, tick } from 'svelte';
+	import type { ActionData, PageData } from './$types';
 
 	export let data: PageData;
 	export let form: ActionData;

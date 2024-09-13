@@ -13,10 +13,11 @@
 	} from '$lib/stores/websocket';
 	import type { MatchModel } from '$lib/types/matchModelsTypes';
 	import { getModalStore, getToastStore, type ModalSettings } from '@skeletonlabs/skeleton';
+	import { error } from '@sveltejs/kit';
 	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
+
 	export let data: PageData;
-	import { error } from '@sveltejs/kit';
 
 	title.set(`Match [${data.code}]`);
 

@@ -1,7 +1,6 @@
 import type { MatchResponse } from "$lib/types/matchTypes";
 import type { PageServerLoad } from './$types';
 import { error } from '@sveltejs/kit';
-import { fail } from '@sveltejs/kit'
 import type { Action, Actions } from './$types'
 
 

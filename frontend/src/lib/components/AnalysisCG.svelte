@@ -32,7 +32,9 @@
 					if (highlights !== undefined) {
 						chessground.setShapes([
 							{
+								// @ts-ignore
 								orig: highlights[pos - 1].slice(0, 2),
+								// @ts-ignore
 								dest: highlights[pos - 1].slice(2),
 								brush: 'red'
 							}

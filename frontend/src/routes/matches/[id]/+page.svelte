@@ -23,6 +23,9 @@
 	let flipBoard: () => void;
 	let loading = true;
 
+	let movesHidden = false;
+	let engineHidden = false;
+
 	let flipped = false;
 	function flip() {
 		flipBoard();
@@ -89,26 +92,88 @@
 		<div>
 			<div class="card p-5 gap-3">
 				<h2 class="h2">Match analysis</h2>
+				<button on:click={() => (movesHidden = !movesHidden)}>
+					<button type="button" class="btn btn-sm variant-filled"
+						>{movesHidden ? 'Show' : 'Hide'} Moves</button
+					>
+				</button>
+
+				<button on:click={() => (engineHidden = !engineHidden)}>
+					<button type="button" class="btn btn-sm variant-filled"
+						>{engineHidden ? 'Show' : 'Hide'} Engine Analysis</button
+					>
+				</button>
+
+				<button on:click={() => (engineHidden = !engineHidden)}>
+					<button type="button" class="btn btn-sm variant-filled"
+						>{engineHidden ? 'Show' : 'Hide'} Principal Variation</button
+					>
+				</button>
+
 				<!-- Moves -->
-				<table>
-					<tbody>
-						{#each data.match.moves.slice(0, Math.ceil(data.match.moves.length / 2)) as _, index}
-							<tr>
-								<td>{index + 1}.</td>
-								<td
-									on:click={() => onMoveClick(index * 2 + 1)}
-									class={index * 2 + 1 == pos ? 'bg-primary-500' : ''}
-									><span>{data.match.moves[index * 2]}</span></td
-								>
-								<td
-									on:click={() => onMoveClick(index * 2 + 2)}
-									class={index * 2 + 2 == pos ? 'bg-primary-500' : ''}
-									>{data.match.moves[index * 2 + 1] || ''}</td
-								>
-							</tr>
-						{/each}
-					</tbody>
-				</table>
+				<div hidden={movesHidden}>
+					<table>
+						<tbody>
+							{#each data.match.moves.slice(0, Math.ceil(data.match.moves.length / 2)) as _, index}
+								<tr>
+									<td>{index + 1}.</td>
+									<td
+										on:click={() => onMoveClick(index * 2 + 1)}
+										class={index * 2 + 1 == pos ? 'bg-primary-500' : ''}
+										><span>{data.match.moves[index * 2]}</span></td
+									>
+									<td
+										on:click={() => onMoveClick(index * 2 + 2)}
+										class={index * 2 + 2 == pos ? 'bg-primary-500' : ''}
+										>{data.match.moves[index * 2 + 1] || ''}</td
+									>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+
+				<div hidden={engineHidden} class="space-y-1">
+					<form
+						method="POST"
+						use:enhance={() => {
+							return async ({ update }) => {
+								await update();
+								await tick();
+
+								engineAnalysis = true;
+
+								toastStore.trigger({
+									message: `Finished engine analysis`,
+									background: 'variant-filled-success',
+									timeout: 4000
+								});
+
+								if (form !== null) {
+									// @ts-ignore
+									highlights = form.map((move) => move.best);
+									console.log(highlights);
+								}
+							};
+						}}
+					>
+						<h3 class="h3">Engine Analysis</h3>
+						<label class="label">
+							<span>Select Engine</span>
+							<select class="select" bind:value={engine} name="engine">
+								{#each Object.entries(data.engines) as [i, name]}
+									<option value={name}>{name}</option>
+								{/each}
+							</select>
+						</label>
+						<label class="label">
+							<span>Engine depth: {depth}</span>
+							<input type="range" min="1" max="19" bind:value={depth} name="depth" />
+						</label>
+						<button type="submit" class="btn variant-ghost-primary self-start">Confirm</button>
+					</form>
+				</div>
+
 				<div>
 					<button type="button" on:click={flip} class="btn-icon variant-filled">🔁</button>
 					<button type="button" on:click={first} class="btn-icon variant-filled">⏪</button>
@@ -116,43 +181,6 @@
 					<button type="button" on:click={forward} class="btn-icon variant-filled">▶️</button>
 					<button type="button" on:click={last} class="btn-icon variant-filled">⏩</button>
 				</div>
-
-				<form
-					method="POST"
-					use:enhance={() => {
-						return async ({ update }) => {
-							await update();
-							await tick();
-
-							if (form !== null) {
-								console.log(form);
-								highlights = form.map((move) => move.best);
-								console.log(highlights);
-							}
-						};
-					}}
-				>
-					<h2 class="h2">Engine Analysis</h2>
-					<label class="label">
-						<span>Select Engine</span>
-						<select class="select" bind:value={engine} name="engine">
-							{#each Object.entries(data.engines) as [i, name]}
-								<option value={name}>{name}</option>
-							{/each}
-						</select>
-					</label>
-					<label class="label">
-						<span>Engine depth: {depth}</span>
-						<input
-							type="range"
-							min="1"
-							max={engine == 'hyperfish' ? 8 : 20}
-							bind:value={depth}
-							name="depth"
-						/>
-					</label>
-					<button type="submit" class="btn variant-ghost-primary self-start">Confirm</button>
-				</form>
 			</div>
 		</div>
 	</div>

@@ -26,6 +26,7 @@ class MatchRequest(BaseModel):
 
 
 class MatchResponse(MatchRequest):
+
     id: int
     hyperchess: bool
 

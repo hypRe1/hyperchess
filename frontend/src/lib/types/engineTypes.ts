@@ -10,3 +10,11 @@ export interface BestMoveRequest {
   engine: string;
   depth?: number;
 }
+export interface ReviewMatchRequest {
+  engine: string;
+  match_id: number;
+  depth?: number;
+}
+export interface ReviewMatchResponse {
+  time: string;
+}

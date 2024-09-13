@@ -1,20 +1,45 @@
 <script lang="ts">
 	import CustomCG from '$lib/components/CustomCG.svelte';
-	import { Chess } from 'chess.js';
+	import { Chess, type Move } from 'chess.js';
 	import { onMount } from 'svelte';
 	import { Chessground } from 'svelte-chessground';
 
 	export let piece: string;
 	export let board: string;
-
 	export let moves: string[];
+	export let highlights: string[] | undefined;
+
+	let moveHistory: Move[];
+	let checks: boolean[] = [];
 
 	let positions: string[];
 	export let flipBoard: () => void;
 
 	export function set(pos: number) {
 		if (assigned) {
-			chessground.set({ fen: positions[pos] });
+			chessground.set({ fen: positions[pos], highlight: { lastMove: false, check: false } });
+
+			if (pos != 0) {
+				let lastMove = undefined;
+				if (moveHistory.length != 0) {
+					lastMove = [moveHistory[pos - 1].from, moveHistory[pos - 1].to];
+					console.log(lastMove);
+					chessground.set({
+						highlight: { lastMove: true, check: true },
+						check: checks[pos - 1],
+						lastMove: lastMove
+					});
+					if (highlights !== undefined) {
+						chessground.setShapes([
+							{
+								orig: highlights[pos - 1].slice(0, 2),
+								dest: highlights[pos - 1].slice(2),
+								brush: 'red'
+							}
+						]);
+					}
+				}
+			}
 		}
 	}
 
@@ -38,8 +63,11 @@
 		for (var i = 0; i < moves.length; i++) {
 			board.move(moves[i]);
 			positions.push(board.fen());
+			checks.push(board.isCheck());
 		}
 		assigned = true;
+		moveHistory = board.history({ verbose: true });
+		console.log(moveHistory);
 	});
 </script>
 

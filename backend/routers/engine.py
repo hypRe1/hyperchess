@@ -2,9 +2,14 @@ import os
 
 import chess
 import chess.engine
-from fastapi import APIRouter, Depends
+from database import db_dependency
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi_limiter.depends import RateLimiter
-from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
+from models import Matches
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+from routers.user import user_dependency
+from sqlalchemy import select
+from util.gameCompressor import decompress_moves
 
 router = APIRouter(prefix="/engine")
 
@@ -40,6 +45,23 @@ class BestMoveRequest(BaseModel):
         return engine_loc
 
 
+class ReviewMatchRequest(BaseModel):
+    engine: str
+    match_id: int
+    depth: int = Field(default=4, lt=20, gt=0)
+
+    @field_validator("engine")
+    @classmethod
+    def engine_available(cls, engine: str):
+        if (engine_loc := engine_locs.get(engine)) is None:
+            raise ValueError(f"Engine '{engine}' not available")
+        return engine_loc
+
+
+class ReviewMatchResponse(BaseModel):
+    time: str
+
+
 @router.post(
     "/",
     status_code=200,
@@ -56,6 +78,59 @@ async def best_move(best_move_request: BestMoveRequest):
     )
     await engine.quit()
     return result.move.uci()
+
+
+@router.post("/eval", status_code=200)
+async def position_evaluation(best_move_request: BestMoveRequest):
+    """
+    Return engine score of position
+    """
+    _, engine = await chess.engine.popen_uci(best_move_request.engine)
+    board = chess.Board(best_move_request.fen)
+    info = await engine.analyse(
+        board, chess.engine.Limit(depth=best_move_request.depth)
+    )
+    await engine.quit()
+    return info
+
+
+@router.post("/review_match", status_code=200)
+async def review_match(
+    request: ReviewMatchRequest, user: user_dependency, db: db_dependency
+):
+    """
+    Review match
+    """
+    _, engine = await chess.engine.popen_uci(request.engine)
+    statement = select(Matches).filter_by(id=request.match_id)
+    result = await db.execute(statement=statement)
+    match = result.scalar_one_or_none()
+    if match is None:
+        raise HTTPException(404, detail="Match does not exist")
+
+    moves = decompress_moves(match.moves)
+    analysis = []
+
+    copy = chess.Board()
+    info = await engine.analyse(copy, chess.engine.Limit(depth=request.depth))
+    pv = info.get("pv")
+    print(pv)
+    if pv is not None:
+        best_move = pv[0].uci()
+    score = info.get("score")
+    analysis.append({"best": best_move, "score": score})
+    for move in moves:
+        copy.push_san(move)
+        info = await engine.analyse(copy, chess.engine.Limit(depth=request.depth))
+        pv = info.get("pv")
+        print(pv)
+        if pv is not None:
+            best_move = pv[0].uci()
+        score = info.get("score")
+        analysis.append({"best": best_move, "score": score})
+
+    await engine.quit()
+    return analysis
 
 
 @router.get(

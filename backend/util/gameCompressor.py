@@ -2,6 +2,9 @@ import chess
 
 
 def compress(moves: list[chess.Move | str]):
+    """
+    Compress moves to bytes by enumerating legal moves
+    """
     compressed = bytearray()
     copy = chess.Board()
     for move in moves:
@@ -14,6 +17,9 @@ def compress(moves: list[chess.Move | str]):
 
 
 def decompress_board(compressed: bytearray):
+    """
+    Decompress moves returning board object
+    """
     board = chess.Board()
     for b in compressed:
         move = list(board.legal_moves)[b]
@@ -22,6 +28,9 @@ def decompress_board(compressed: bytearray):
 
 
 def decompress_moves(compressed: bytearray):
+    """
+    Decompress moves returning moves object
+    """
     moves = []
     board = chess.Board()
     for b in compressed:

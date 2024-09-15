@@ -8,7 +8,6 @@ from database import get_db
 from fastapi import WebSocket
 from models import Matches, UserMatches
 from pydantic import BaseModel
-from sqlalchemy import insert
 from util.connectionManager import ConnectionManager
 from util.gameCompressor import compress
 from util.matchModels import Match, Result
@@ -31,6 +30,11 @@ class MatchListingRequestForm(BaseModel):
 
 
 class GameConnectionManager(ConnectionManager):
+    """
+    Manages the WebSocket connections and game logic.
+    This class handles game listings, game matches, and player interactions
+    """
+
     def __init__(self):
         super().__init__()
         self.listing_listeners: set[str] = set()
@@ -53,6 +57,9 @@ class GameConnectionManager(ConnectionManager):
         return ws
 
     def get_match_from_code(self, code: str) -> Match | None:
+        """
+        Get match object from code
+        """
         return self.public_matches.get(code) or self.private_matches.get(code)
 
     async def add_listing(

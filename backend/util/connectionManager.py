@@ -8,6 +8,10 @@ from websockets.frames import CloseCode
 
 
 class ConnectionManager:
+    """
+    Manages WebSocket connections authenticating connected users
+    """
+
     def __init__(self):
         self.active_connections: dict[str, WebSocket] = {}
 
@@ -18,7 +22,6 @@ class ConnectionManager:
         Requests a JWT token from client
         If authentication fails, the connection is closed
         """
-
         await ws.send_json(["tokenRequest"])
         token = await ws.receive_text()
         try:
@@ -40,7 +43,6 @@ class ConnectionManager:
         If a user is connected from another session, the previous session is disconnected
         The current WebSocket connection is stored as the active connection for the user
         """
-
         await ws.accept()
         user = await self.auth_user(ws)
         if user is None:
@@ -69,7 +71,6 @@ class ConnectionManager:
         Disconnects a user's WebSocket connection
         Removes WebSocket connection associated with the given user if it matches the given WebSocket
         """
-
         if (
             username in self.active_connections
             and self.active_connections.get(username) == ws

@@ -1,21 +1,30 @@
 <script lang="ts">
 	import PreviewCg from '$lib/components/previewCG.svelte';
 	import type { PageData } from './$types';
+	import { title } from '$lib/stores/title';
 
+	// Page data injected from server response
 	export let data: PageData;
+
+	// Set the page title
+	title.set('Matches');
 </script>
 
 <div class="space-y-4">
 	<h2 class="h2">Archived matches 📁</h2>
 
+	<!-- Loop through matches displaying each one -->
 	{#each data.matches as match}
+		<!-- Link to match analysis page -->
 		<a class="card card-hover flex flex-row items-center gap-4 p-2" href="/matches/{match.id}">
+			<!-- Game preview -->
 			<div class="size-32">
 				<PreviewCg piece={data.appearance.piece} board={data.appearance.board} fen={match.fen}
 				></PreviewCg>
 			</div>
+			<!--Match time and bonus -->
 			<p>{match.time}+{match.bonus}</p>
-			<div></div>
+			<!-- Match result -->
 			<div>
 				{#if match.winner === null}
 					<p class="bg-yellow-50">½ {match.white}</p>
@@ -29,7 +38,9 @@
 				{/if}
 			</div>
 
+			<!-- Number of (half) moves -->
 			<p>{match.n_moves} moves</p>
+			<!-- Time match started -->
 			<p class="code">{match.time_started}</p>
 		</a>
 	{/each}

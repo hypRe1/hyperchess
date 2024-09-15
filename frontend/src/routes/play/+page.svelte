@@ -21,27 +21,41 @@
 	} from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
+	import { title } from '$lib/stores/title';
 
+	// Page data injected from the server response
 	export let data: PageData;
 
+	// Set the page title
+	title.set('Play');
+
+	// Initialise toast and modal stores
 	const toastStore = getToastStore();
 	const modalStore = getModalStore();
 
+	// Variables to store match listings and user listing data
 	let listings: MatchListing[] = [];
-	let userListing: MatchListing | null = null;
+	let userListing: MatchListing | null = null; // null if the user has no active listing
+
+	// Flag to determine whether to close WebSocket connection
 	let invalidateSocket: boolean = true;
 
+	// Function to handle messages received via the  WebSocket connection
 	const handleMessage = (event: MessageEvent) => {
+		// Parse incoming message data
 		const msg = JSON.parse(event.data);
 		let cmd = msg[0];
 		let msgData = msg[1];
 
 		switch (cmd) {
+			// When server requests token
 			case 'tokenRequest':
 				if (data.token !== undefined) {
 					sendMessage(data.token);
 				}
 				break;
+
+			// When first connected to websocket
 			case 'connected':
 				toastStore.trigger({
 					message: `Connected to websocket`,
@@ -50,6 +64,8 @@
 				});
 				sendMessage(JSON.stringify(['listenListings']));
 				break;
+
+			// When disconnected from the websocket
 			case 'disconnected':
 				const modal: ModalSettings = {
 					type: 'component',
@@ -60,6 +76,8 @@
 				};
 				modalStore.trigger(modal);
 				break;
+
+			// When a match listing is added
 			case 'addListing':
 				if (msgData.success) {
 					userListing = msgData.listing;
@@ -76,6 +94,8 @@
 					});
 				}
 				break;
+
+			// When a match listing is removed
 			case 'removeListing':
 				if (msgData.success) {
 					userListing = null;
@@ -92,6 +112,8 @@
 					});
 				}
 				break;
+
+			// When a listing is added or removed
 			case 'listenListings':
 				if (msgData.listings !== undefined) {
 					listings = msgData.listings;
@@ -105,6 +127,7 @@
 				}
 				break;
 
+			// When user accepts match listing or their match listing is accepted
 			case 'joinMatch':
 				toastStore.trigger({
 					message: 'Game started',
@@ -118,11 +141,15 @@
 	};
 
 	onMount(() => {
+		// Open websocket
 		connectSocket(handleMessage);
 
+		// Cleanup function when component is destroyed
 		return () => {
+			// Stop listening to listings
 			sendMessage(JSON.stringify(['stopListenListings']));
 			if (invalidateSocket) {
+				// Close socket if not joining a match
 				closeSocket();
 				toastStore.trigger({
 					message: `Disconnected from websocket`,
@@ -132,10 +159,13 @@
 			}
 		};
 	});
+
+	// Function to create a new match listing
 	function createListing(listingForm: MatchListingRequestForm) {
 		sendMessage(JSON.stringify(['addListing', listingForm]));
 	}
 
+	// Function to open the modal for creating a new match
 	function createListingBtn() {
 		const c: ModalComponent = { ref: CreateMatchModal };
 		const modal: ModalSettings = {
@@ -147,10 +177,12 @@
 		modalStore.trigger(modal);
 	}
 
+	// Function to delete user's listing
 	function deleteListingBtn() {
 		sendMessage(JSON.stringify(['removeListing']));
 	}
 
+	// Function to return a colour string based on boolean value
 	function getColourString(colour: boolean | null): string {
 		if (colour === null) {
 			return 'random';
@@ -161,10 +193,12 @@
 		}
 	}
 
+	// Function to accept a match listing given its code
 	function acceptListing(code: string) {
 		sendMessage(JSON.stringify(['acceptListing', code]));
 	}
 
+	// Function to format 0.5 & 2.5 minute times as fractions
 	function fractionTime(time: number) {
 		if (time == 0.5) {
 			return '½';
@@ -198,6 +232,7 @@
 			</tr>
 		</thead>
 		<tbody>
+			<!-- Display user's listing on top -->
 			{#if userListing !== null}
 				<tr class="variant-ghost-secondary">
 					<td><span class="badge variant-soft-primary">{userListing.code}</span></td>
@@ -209,6 +244,7 @@
 				</tr>
 			{/if}
 
+			<!-- Display other user's match listings -->
 			{#each listings as listing}
 				{#if userListing == null || listing.code !== userListing.code}
 					<tr on:click={() => acceptListing(listing.code)}>

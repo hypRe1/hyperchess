@@ -1,3 +1,4 @@
+import time as t
 from dataclasses import dataclass, field
 from enum import IntEnum
 from typing import List
@@ -51,7 +52,7 @@ class Match:
     game_over: bool = False
     result: Result = Result.ONGOING
     winner: bool | None = None
-    time_started: float = field(default_factory=time.time)
+    time_started: float = field(default_factory=t.time)
     timings: list[float] = field(default_factory=list)
     draw_offer: bool | None = None
     draw_disabled: bool = False

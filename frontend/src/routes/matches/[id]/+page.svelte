@@ -5,54 +5,35 @@
 	import { getToastStore } from '@skeletonlabs/skeleton';
 	import { onMount, tick } from 'svelte';
 	import type { ActionData, PageData } from './$types';
+	import { title } from '$lib/stores/title';
 
+	// Page data injected from server response
 	export let data: PageData;
+	// Engine analysis form results from server
 	export let form: ActionData;
 
-	let engine: string = 'hyperfish';
-	let depth: number = 5;
-	let engineAnalysis: boolean = false;
-	let highlights: string[] | undefined = undefined;
+	// Set the page title
+	title.set('Match analysis');
 
+	// Initialise the toast store for notifications
 	const toastStore = getToastStore();
 
-	let pos: number = data.match.moves.length;
-	let set: (n: number) => void;
-	let flipBoard: () => void;
-	let loading = true;
+	let engine: string = 'hyperfish'; // Default chess engine
+	let depth: number = 5; // Default depth
+	let engineAnalysis: boolean = false; // Whether engine analysis is active
+	let highlights: string[] | undefined = undefined; // Highlights for moves, populate after analysis
 
+	let pos: number = data.match.moves.length; // Track current position in game
+	let set: (n: number) => void; // Function to set the current move position
+	let flipBoard: () => void; // Function to flip the board
+	let loading = true; // Loading state for account components
+
+	// States to toggle visibility of moves and engine analysis section
 	let movesHidden = false;
 	let engineHidden = false;
 
+	// Board flip state
 	let flipped = false;
-	function flip() {
-		flipBoard();
-		flipped = !flipped;
-	}
-
-	function first() {
-		pos = 0;
-		set(pos);
-	}
-
-	function back() {
-		if (pos > 0) {
-			pos = pos - 1;
-			set(pos);
-		}
-	}
-
-	function forward() {
-		if (pos < data.match.moves.length) {
-			pos = pos + 1;
-			set(pos);
-		}
-	}
-
-	function last() {
-		pos = data.match.moves.length;
-		set(pos);
-	}
 
 	function onMoveClick(movePos: number) {
 		if (movePos <= data.match.moves.length) {
@@ -62,16 +43,21 @@
 	}
 
 	onMount(async () => {
+		// Set loading to false once component is mounted to the DOM
 		loading = false;
 	});
 </script>
 
 <div class="space-y-4">
 	<div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+		<!-- Left column: Account details and chessboard -->
 		<div class="space-y-1">
+			<!-- Account component for opposite side player -->
 			<div>
 				<Account username={flipped ? data.match.white : data.match.black} {loading}></Account>
 			</div>
+
+			<!-- Chessboard component -->
 			<div class="size-5/6">
 				<AnalysisCG
 					piece={data.appearance.piece}
@@ -82,14 +68,18 @@
 					bind:flipBoard
 				></AnalysisCG>
 			</div>
+
+			<!-- Account component for same side player -->
 			<div>
 				<Account username={flipped ? data.match.black : data.match.white} {loading}></Account>
 			</div>
 		</div>
 
+		<!-- Right column: Match moves and engine analysis -->
 		<div>
 			<div class="card p-5 gap-3">
 				<h2 class="h2">Match analysis</h2>
+				<!-- Section collapser buttons -->
 				<button on:click={() => (movesHidden = !movesHidden)}>
 					<button type="button" class="btn btn-sm variant-filled"
 						>{movesHidden ? 'Show' : 'Hide'} Moves</button
@@ -108,10 +98,11 @@
 					>
 				</button>
 
-				<!-- Moves -->
+				<!-- Moves section -->
 				<div hidden={movesHidden}>
 					<table>
 						<tbody>
+							<!-- Loop through the first half of the moves, displaying two moves per row -->
 							{#each data.match.moves.slice(0, Math.ceil(data.match.moves.length / 2)) as _, index}
 								<tr>
 									<td>{index + 1}.</td>
@@ -131,6 +122,7 @@
 					</table>
 				</div>
 
+				<!-- Engine analysis section -->
 				<div hidden={engineHidden} class="space-y-1">
 					<form
 						method="POST"
@@ -156,6 +148,8 @@
 						}}
 					>
 						<h3 class="h3">Engine Analysis</h3>
+
+						<!-- Engine selection dropdown -->
 						<label class="label">
 							<span>Select Engine</span>
 							<select class="select" bind:value={engine} name="engine">
@@ -164,20 +158,64 @@
 								{/each}
 							</select>
 						</label>
+
+						<!-- Engine depth slider -->
 						<label class="label">
 							<span>Engine depth: {depth}</span>
 							<input type="range" min="1" max="19" bind:value={depth} name="depth" />
 						</label>
+
+						<!-- Submit button for engine analysis form -->
 						<button type="submit" class="btn variant-ghost-primary self-start">Confirm</button>
 					</form>
 				</div>
 
+				<!-- Navigation buttons for chess moves and board flip -->
 				<div>
-					<button type="button" on:click={flip} class="btn-icon variant-filled">🔁</button>
-					<button type="button" on:click={first} class="btn-icon variant-filled">⏪</button>
-					<button type="button" on:click={back} class="btn-icon variant-filled">◀️</button>
-					<button type="button" on:click={forward} class="btn-icon variant-filled">▶️</button>
-					<button type="button" on:click={last} class="btn-icon variant-filled">⏩</button>
+					<button
+						type="button"
+						on:click={() => {
+							flipBoard();
+							flipped = !flipped;
+						}}
+						class="btn-icon variant-filled">🔁</button
+					>
+					<button
+						type="button"
+						on:click={() => {
+							pos = 0;
+							set(pos);
+						}}
+						class="btn-icon variant-filled">⏪</button
+					>
+					<button
+						type="button"
+						on:click={() => {
+							if (pos > 0) {
+								pos = pos - 1;
+								set(pos);
+							}
+						}}
+						class="btn-icon variant-filled">◀️</button
+					>
+					<button
+						type="button"
+						on:click={() => {
+							if (pos < data.match.moves.length) {
+								pos = pos + 1;
+								set(pos);
+							}
+						}}
+						class="btn-icon variant-filled">▶️</button
+					>
+					<button
+						type="button"
+						on:click={() => {
+							pos = data.match.moves.length;
+							set(pos);
+						}}
+						class="btn-icon variant-filled">⏩</button
+					>
 				</div>
 			</div>
 		</div>

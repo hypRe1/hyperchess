@@ -17,24 +17,28 @@
 	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
 
+	// Page data injected from the server response
 	export let data: PageData;
 
+	// Set the page title
 	title.set(`Match [${data.code}]`);
 
+	// Initialise toast and modal stores
 	const toastStore = getToastStore();
 	const modalStore = getModalStore();
 
-	let loading = true;
-	let piece = data.piece;
-	let board = data.board;
-	let match: MatchModel;
+	let loading = true; // Loading state for account components
+	let match: MatchModel; // Stores the match details
+
+	// Enumeration for different board modes
 	enum BoardMode {
 		white,
 		black,
 		spectate
 	}
-	let boardMode = BoardMode.spectate;
+	let boardMode = BoardMode.spectate; // Default to spectate mode
 
+	// Declare bound functions for chessboard component
 	let flipBoard: () => void;
 	let history: () => string[];
 	let turn: () => boolean;
@@ -48,6 +52,7 @@
 			  }
 	) => void;
 
+	// Possible match results
 	const results = [
 		'ongoing',
 		'checkmate',
@@ -60,13 +65,15 @@
 		'75 move rule'
 	];
 
+	// Track moves, match result and timers for each player
 	let moves: string[] = [];
 	let result: string = '';
-	let bt: number = 0;
-	let wt: number = 0;
+	let bt: number = 0; // Black player's time
+	let wt: number = 0; // White player's time
 
-	let timerInterval: NodeJS.Timeout;
+	let timerInterval: NodeJS.Timeout; // Interval for updating the timers
 
+	// Function to calculate both player's timers based on time spent on each move
 	function updateTimers() {
 		let _turn = turn();
 		let d = new Date();
@@ -98,12 +105,17 @@
 		bt = Math.round(black_time_left);
 	}
 
+	// Function to display clock time
 	function displayTime(seconds: number): string {
+		if (seconds == 0) return '💀';
+		if (seconds < 10) return `${seconds} ${seconds % 2 ? '😨' : '😰'}`;
+
 		return `${Math.floor(seconds / 60)
 			.toString()
 			.padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
 	}
 
+	// Handle resign button click with confirmation modal
 	function resignBtn() {
 		function modalResp(r: boolean) {
 			if (r) sendMessage(JSON.stringify(['resign']));
@@ -118,24 +130,41 @@
 		modalStore.trigger(modal);
 	}
 
+	// Handle draw button click with confirmation modal
 	function drawBtn() {
-		sendMessage(JSON.stringify(['draw', 'offer']));
+		function modalResp(r: boolean) {
+			if (r) sendMessage(JSON.stringify(['draw', 'offer']));
+		}
+
+		const modal: ModalSettings = {
+			type: 'confirm',
+			title: 'Draw',
+			body: 'Are you sure you want to send a draw offer?',
+			response: (r: boolean) => modalResp(r)
+		};
+		modalStore.trigger(modal);
 	}
 
+	// WebSocket message handler
 	const handleMessage = (event: MessageEvent) => {
 		const msg = JSON.parse(event.data);
 		let cmd = msg[0];
 		let msgData = msg[1];
 
 		switch (cmd) {
+			// When server requests token send back user token
 			case 'tokenRequest':
 				if (data.token !== undefined) {
 					sendMessage(data.token);
 				}
 				break;
+
+			// When first connected to websocket send join match request with match code
 			case 'connected':
 				sendMessage(JSON.stringify(['joinMatch', data.code]));
 				break;
+
+			// When disconnected from websocket trigger fullscreen disconnect modal
 			case 'disconnected':
 				const modal: ModalSettings = {
 					type: 'component',
@@ -146,6 +175,8 @@
 				};
 				modalStore.trigger(modal);
 				break;
+
+			// When user joins a match
 			case 'joinMatch':
 				if (msgData.success === false) {
 					toastStore.trigger({
@@ -156,26 +187,33 @@
 					throw error(404);
 				}
 
-				loading = false;
+				loading = false; // Account components can now be loaded
 				match = msgData;
 
-				wt = bt = match.time * 60;
+				wt = bt = match.time * 60; // Initialise clock timer
 
+				// Set board mode
 				if (data.profile!.username == match.white_player) {
 					boardMode = BoardMode.white;
 				} else if (data.profile!.username == match.black_player) {
 					boardMode = BoardMode.black;
 				}
+
+				// Push the existing moves
 				for (var i = 0; i < match.moves.length; i++) push_move(match.moves[i]);
 				moves = history();
+
+				// Notify the user that they have successfully joined the match
 				toastStore.trigger({
 					message: 'Joined match',
 					background: 'variant-filled-success',
 					timeout: 2000
 				});
 
+				// Update both player's timers
 				updateTimers();
 
+				// Function to calculate the timer of the player whos turn it is
 				function updateTimer() {
 					if (!match.game_over) {
 						let _turn: boolean = turn();
@@ -199,8 +237,11 @@
 					}
 				}
 
+				// Calculate the timer of the player whos turn it is every 100ms
 				timerInterval = setInterval(updateTimer, 100);
 				break;
+
+			// When user makes a move
 			case 'makeMove':
 				if (msgData.success) {
 					turn() ? (bt = bt + match.bonus) : (wt = wt + match.bonus);
@@ -214,12 +255,16 @@
 					});
 				}
 				break;
+
+			// When other player makes a move
 			case 'pushMove':
 				turn() ? (wt = wt + match.bonus) : (bt = bt + match.bonus);
 				match.timings?.push(msgData.time);
 				push_move(msgData.move);
 				moves = history();
 				break;
+
+			// When game is over
 			case 'gameOver':
 				updateTimers();
 				boardMode = BoardMode.spectate;
@@ -233,6 +278,8 @@
 					timeout: 2000
 				});
 				break;
+
+			// When a draw is sent, offered, accepted or declined
 			case 'draw':
 				switch (msgData) {
 					case 'offer':
@@ -327,8 +374,8 @@
 			<VsPlayerCg
 				bind:history
 				bind:turn
-				bind:piece
-				bind:board
+				piece={data.appearance.piece}
+				board={data.appearance.board}
 				bind:flipBoard
 				bind:push_move
 				bind:mode={boardMode}

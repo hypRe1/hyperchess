@@ -13,6 +13,7 @@ from util.gameCompressor import decompress_moves
 
 router = APIRouter(prefix="/engine")
 
+# Get engine directory containing engine executables from .env file
 ENGINES_LOC = os.getenv("ENGINES_LOC")
 assert ENGINES_LOC, "ENGINES_LOC not found in .env"
 
@@ -28,6 +29,10 @@ engine_locs = {
 
 # for file in os.listdir(WEIGHTS_LOC):
 #     engine_locs[f"Lc0 - {file}"] = f"lc0 --weights {os.path.join(ENGINES_LOC, file)}"
+
+# --------------- #
+# Pydantic models #
+# --------------- #
 
 
 class BestMoveRequest(BaseModel):
@@ -60,6 +65,11 @@ class ReviewMatchRequest(BaseModel):
 
 class ReviewMatchResponse(BaseModel):
     time: str
+
+
+# ------------- #
+# API Endpoints #
+# ------------- #
 
 
 @router.post(
@@ -114,20 +124,18 @@ async def review_match(
     copy = chess.Board()
     info = await engine.analyse(copy, chess.engine.Limit(depth=request.depth))
     pv = info.get("pv")
-    print(pv)
     if pv is not None:
         best_move = pv[0].uci()
     score = info.get("score")
-    analysis.append({"best": best_move, "score": score})
+    analysis.append({"best": best_move, "pv": pv, "score": score})
     for move in moves:
         copy.push_san(move)
         info = await engine.analyse(copy, chess.engine.Limit(depth=request.depth))
         pv = info.get("pv")
-        print(pv)
         if pv is not None:
             best_move = pv[0].uci()
         score = info.get("score")
-        analysis.append({"best": best_move, "score": score})
+        analysis.append({"best": best_move, "pv": pv, "score": score})
 
     await engine.quit()
     return analysis

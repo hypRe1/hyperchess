@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from routers.user import user_dependency
 from sqlalchemy import select
 
-router = APIRouter(prefix="/appearance", tags=[""])
+router = APIRouter(prefix="/appearance", tags=["appearance"])
 
 
 class Themes(StrEnum):
@@ -28,6 +28,7 @@ class Themes(StrEnum):
 
 BOARD_THEMES_PATH = "../frontend/static/"
 
+# Get boards and pieces from path
 board_files = []
 for f in os.listdir(BOARD_THEMES_PATH + "board"):
     if not (f.endswith(".jpg") or f.endswith(".png")) or f.count(".") > 1:
@@ -59,6 +60,11 @@ class UserAppearance(BaseModel):
     board: Boards  # type: ignore
     piece: Pieces  # type: ignore
     dark: bool
+
+
+# ------------- #
+# API Endpoints #
+# ------------- #
 
 
 @router.get("/")
@@ -100,14 +106,17 @@ async def edit_appearance(
 
 @router.get("/boards")
 async def get_boards():
+    """Get boards"""
     return [b.value for b in Boards]
 
 
 @router.get("/pieces")
 async def get_boards():
+    """Get pieces"""
     return [p.value for p in Pieces]
 
 
 @router.get("/themes")
 async def get_boards():
+    """Get themes"""
     return [t.value for t in Themes]

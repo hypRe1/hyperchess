@@ -11,7 +11,13 @@ from util.gameCompressor import compress, decompress_board, decompress_moves
 from util.gameConnectionManager import GameConnectionManager, MatchListingRequestForm
 
 router = APIRouter(prefix="/match", tags=["match"])
+
+# Instantiate game connection manager for match websocket connections
 manager = GameConnectionManager()
+
+# --------------- #
+# Pydantic models #
+# --------------- #
 
 
 class MatchRequest(BaseModel):
@@ -26,7 +32,6 @@ class MatchRequest(BaseModel):
 
 
 class MatchResponse(MatchRequest):
-
     id: int
     hyperchess: bool
 
@@ -45,17 +50,26 @@ class MatchesResponse(BaseModel):
     hyperchess: bool
 
 
+# ------------- #
+# API Endpoints #
+# ------------- #
+
+
 @router.post(
     "/",
     status_code=201,
 )
 async def add_match(request: MatchRequest, user: user_dependency, db: db_dependency):
+    """
+    Add match to database after compressing moves
+    """
     try:
         compressed_moves = compress(request.moves)
     except ValueError:
         raise HTTPException(400, detail="Cannot process illegal move")
 
-    match_id = random.randint(0, 2000000000)
+    # Randomly generate a unique match id
+    match_id = random.randint(1000000000, 2000000000)
 
     create_match_model = Matches(
         id=match_id,
@@ -83,6 +97,9 @@ async def add_match(request: MatchRequest, user: user_dependency, db: db_depende
     status_code=200,
 )
 async def get_match(id: int, db: db_dependency):
+    """
+    Return all match details given the match id
+    """
     statement = select(Matches).filter_by(id=id)
     result = await db.execute(statement=statement)
 
@@ -105,6 +122,12 @@ async def get_match(id: int, db: db_dependency):
 
 @router.get("/", status_code=200)
 async def get_matches(user: user_dependency, db: db_dependency):
+    """
+    Return all matches that a user has either played or added
+
+    Each returned match contains the last board position in FEN notation
+    instead of a list of moves like the get_match endpoint
+    """
     statement = (
         select(Matches)
         .join(UserMatches, Matches.id == UserMatches.matchId)
@@ -139,7 +162,7 @@ async def get_matches(user: user_dependency, db: db_dependency):
 @router.websocket("/ws")
 async def match(websocket: WebSocket):
     """
-    Match websocket
+    Match websocket used for playing games, listening for match listings and for matches being played
     """
     user = await manager.connect(websocket)
     if user is None:

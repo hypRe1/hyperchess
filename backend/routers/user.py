@@ -21,6 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
 from starlette.websockets import WebSocket
 
+# Find and parse .env file
 load_dotenv(find_dotenv())
 
 # https://github.com/pyca/bcrypt/issues/684
@@ -28,9 +29,11 @@ logging.getLogger("passlib").setLevel(logging.ERROR)
 
 router = APIRouter(prefix="/user", tags=["user"])
 
+# Get constants used for hashing from .env file
 SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 ALGORITHM = os.getenv("JWT_ALGORITHM")
 
+# Check if constants exist in .env file and if algorithm is valid
 assert SECRET_KEY, "JWT_SECRET_KEY not found in .env"
 assert ALGORITHM, "JWT_ALGORITHM not found in .env"
 assert ALGORITHM in ALGORITHMS.SUPPORTED, f"Algorithm {ALGORITHM} not supported"
@@ -38,6 +41,7 @@ assert ALGORITHM in ALGORITHMS.SUPPORTED, f"Algorithm {ALGORITHM} not supported"
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl="api/user/token")
 
+# Load countries from csv file
 with open("countries.csv") as f:
     valid_country_codes = set()
     countries = {}
@@ -51,9 +55,15 @@ with open("countries.csv") as f:
             "circular_image": f"https://hatscripts.github.io/circle-flags/flags/{code.lower()}.svg",
         }
 
+# Load default profile picture and convert to base64
 with open("default_avatar.png", "rb") as f:
     default_pfp = f.read()
 default_pfp_b64 = "data:image/png;base64, " + base64.b64encode(default_pfp).decode()
+
+
+# --------------- #
+# Pydantic models #
+# --------------- #
 
 
 class SignupForm(OAuth2PasswordRequestForm):
@@ -127,14 +137,22 @@ class CountryResponse(BaseModel):
     countries: dict[str, Country]
 
 
+# HTTP exception for when user gives wrong login details
 invalid_auth = HTTPException(
     status_code=401,
     detail="Invalid authentication credentials",
     headers={"WWW-Authenticate": "Bearer"},
 )
 
+# ---------------- #
+# Helper functions #
+# ---------------- #
+
 
 async def get_user(username: str, db: db_dependency) -> Users:
+    """
+    Fetch user row from database by username
+    """
     statement = select(Users).where(Users.username == username)
     result = await db.execute(statement)
     user = result.scalar_one_or_none()
@@ -151,7 +169,9 @@ async def get_user(username: str, db: db_dependency) -> Users:
 async def get_current_user(
     token: Annotated[str, Depends(oauth2_bearer)], db: db_dependency
 ) -> Users:
-
+    """
+    Get current user by decoding JWT token
+    """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub")
@@ -176,6 +196,9 @@ user_dependency = Annotated[Users, Depends(get_current_user)]
 async def authenticate_user(
     username: str, password: str, db: AsyncSession
 ) -> Users | Literal[False]:
+    """
+    Authenticate user checking if password matches stored hash
+    """
     statement = select(Users).where(Users.username == username)
     result = await db.execute(statement)
     user = result.scalar_one_or_none()
@@ -187,6 +210,9 @@ async def authenticate_user(
 
 
 def create_access_token(username: str, expires_delta: timedelta) -> str:
+    """
+    Create JWT token given username and expiration time
+    """
     encode = {
         "sub": username,
         "iat": datetime.now(UTC),
@@ -196,6 +222,9 @@ def create_access_token(username: str, expires_delta: timedelta) -> str:
 
 
 async def user_identifer(request: Request | WebSocket) -> str:
+    """
+    Identify user for ratelimiting requests
+    """
     token = request.headers.get("Authorization")
 
     try:
@@ -212,12 +241,21 @@ async def user_identifer(request: Request | WebSocket) -> str:
     return request.client.host + ":" + request.scope["path"]
 
 
-def user_picture_B64(picture: bytes):
+def user_picture_B64(picture: bytes | None):
+    """
+    Convert image bytes to base64
+    If picture is None return the default profile picture in b64
+    """
     return (
         default_pfp_b64
         if picture is None
         else "data:image/png;base64, " + base64.b64encode(picture).decode()
     )
+
+
+# ------------- #
+# API Endpoints #
+# ------------- #
 
 
 @router.post(
@@ -228,9 +266,8 @@ async def create_user(
     db: db_dependency,
 ) -> None:
     """
-    Create a user account
+    Create a user account from username, email and password
     """
-
     if not all(c.isalnum() for c in form_data.username):
         raise HTTPException(
             422, detail="Username should only contain alphanumeric characters"
@@ -277,7 +314,7 @@ async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: db_dependency
 ) -> dict[str, str]:
     """
-    Login by getting a JWT
+    Login by getting a JWT token
     """
     user = await authenticate_user(form_data.username, form_data.password, db)
     if not user:
@@ -297,7 +334,7 @@ async def delete_user(
     db: db_dependency,
 ) -> None:
     """
-    Delete account
+    Delete account requiring username and password
     """
     if form_data.username != user.username:
         raise HTTPException(400, detail="Wrong username")
@@ -325,11 +362,11 @@ async def upload_avatar(
     """
     Upload a profile picture for account
     """
-
     if file_request.content_type not in ("image/jpeg", "image/png"):
         raise HTTPException(400, "Unsupported file type")
 
     try:
+        # Resize image to 256x256 and convert back to bytes before saving to database
         image = Image.open(file_request.file)
         image_bytes = io.BytesIO()
         image.resize((256, 256), Image.LANCZOS).save(image_bytes, format="PNG")
@@ -354,7 +391,6 @@ async def delete_avatar(user: user_dependency, db: db_dependency) -> None:
     """
     Remove profile picture
     """
-
     if not user.picture:
         raise HTTPException(404, detail="You do not have a profile picture")
 
@@ -387,6 +423,7 @@ async def edit_user_info(
             )
             image_bytes = io.BytesIO()
 
+            # Resize image to 256x256 after cropping so that image is not stretched
             width, height = image.size
             crop_size = min(image.size)
             image = image.crop(
@@ -446,7 +483,6 @@ async def get_user_profile(username: str, db: db_dependency):
     """
     Return public account information given username
     """
-
     statement = select(Users).where(Users.username == username)
     result = await db.execute(statement)
     user = result.scalar_one_or_none()

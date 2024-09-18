@@ -21,12 +21,17 @@
 
 			if (pos != 0) {
 				let lastMove = undefined;
+				let check: 'white' | 'black' | undefined = undefined;
+				if (checks[pos - 1]) {
+					check = pos % 2 == 0 ? 'white' : 'black';
+				}
+
 				if (moveHistory.length != 0) {
 					lastMove = [moveHistory[pos - 1].from, moveHistory[pos - 1].to];
 					console.log(lastMove);
 					chessground.set({
 						highlight: { lastMove: true, check: true },
-						check: checks[pos - 1],
+						check: check,
 						lastMove: lastMove
 					});
 					if (highlights !== undefined) {

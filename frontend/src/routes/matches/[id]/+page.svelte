@@ -6,6 +6,7 @@
 	import { onMount, tick } from 'svelte';
 	import type { ActionData, PageData } from './$types';
 	import { title } from '$lib/stores/title';
+	import { ProgressBar } from '@skeletonlabs/skeleton';
 
 	// Page data injected from server response
 	export let data: PageData;
@@ -22,6 +23,7 @@
 	let depth: number = 5; // Default depth
 	let engineAnalysis: boolean = false; // Whether engine analysis is active
 	let highlights: string[] | undefined = undefined; // Highlights for moves, populate after analysis
+	let scores: { per: number; label: number }[] | undefined = undefined;
 
 	let pos: number = data.match.moves.length; // Track current position in game
 	let set: (n: number) => void; // Function to set the current move position
@@ -142,6 +144,8 @@
 								if (form !== null) {
 									// @ts-ignore
 									highlights = form.map((move) => move.best);
+									// @ts-ignore
+									scores = form.map((move) => move.score);
 									console.log(highlights);
 								}
 							};
@@ -218,6 +222,12 @@
 					>
 				</div>
 			</div>
+			{#if scores}
+				<div class="p-4">
+					<strong>{scores[pos].label}</strong>
+					<ProgressBar value={scores[pos].per} min={0} max={100} height="h-10" />
+				</div>
+			{/if}
 		</div>
 	</div>
 </div>

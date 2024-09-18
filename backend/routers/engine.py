@@ -122,20 +122,43 @@ async def review_match(
     analysis = []
 
     copy = chess.Board()
-    info = await engine.analyse(copy, chess.engine.Limit(depth=request.depth))
-    pv = info.get("pv")
-    if pv is not None:
-        best_move = pv[0].uci()
-    score = info.get("score")
-    analysis.append({"best": best_move, "pv": pv, "score": score})
-    for move in moves:
-        copy.push_san(move)
+
+    async def review_pos():
         info = await engine.analyse(copy, chess.engine.Limit(depth=request.depth))
         pv = info.get("pv")
-        if pv is not None:
+        best_move = None
+        if pv is not None and len(pv) > 0:
             best_move = pv[0].uci()
         score = info.get("score")
-        analysis.append({"best": best_move, "pv": pv, "score": score})
+        white_score = score.white()
+        white_cp = white_score.score()
+        white_mate = white_score.mate()
+
+        if white_mate is not None:
+            label = "Mate in " + str(white_mate)
+            per = 100 if (white_mate > 0) else -100
+        elif white_cp is not None:
+            label = str(white_cp / 100)
+            per = (white_cp / 25) + 50
+        else:
+            per = 69
+            label = "on skibidi"
+
+        analysis.append(
+            {
+                "best": best_move,
+                "pv": pv,
+                "score": {
+                    "per": per,
+                    "label": label,
+                },
+            }
+        )
+
+    await review_pos()
+    for move in moves:
+        copy.push_san(move)
+        await review_pos()
 
     await engine.quit()
     return analysis

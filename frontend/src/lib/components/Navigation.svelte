@@ -10,9 +10,7 @@
 	const pages = {
 		Home: '/',
 		Play: '/play',
-		Train: '/?train',
-		Analysis: '/?analysis',
-		Leaderboard: '/?leaderboard'
+		Engine: '/demo'
 	};
 </script>
 

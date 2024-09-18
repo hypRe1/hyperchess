@@ -12,11 +12,11 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi_limiter.depends import RateLimiter
 from jose import ExpiredSignatureError, JWTError, jwt
 from jose.constants import ALGORITHMS
-from models import Appearance, Users
+from models import Appearance, UserMatches, Users
 from passlib.context import CryptContext
 from PIL import Image
 from pydantic import BaseModel, EmailStr, Field
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
 from starlette.websockets import WebSocket
@@ -342,12 +342,13 @@ async def delete_user(
     if not bcrypt_context.verify(form_data.password, user.password):
         raise HTTPException(400, detail="Incorrect password")
 
+    await db.execute(delete(Appearance).where(Appearance.username == user.username))
+    await db.execute(delete(UserMatches).where(UserMatches.username == user.username))
     await db.delete(user)
-    await db.execute("DELETE appearance WHERE username = ?", (user.username,))
 
     try:
         await db.commit()
-    except:
+    except Exception:
         raise HTTPException(500, detail="Failed to delete user from database")
 
 

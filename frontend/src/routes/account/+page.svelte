@@ -2,9 +2,17 @@
 	import Account from '$lib/components/Account.svelte';
 	import { title } from '$lib/stores/title';
 	import type { PersonalUserResponse } from '$lib/types/userTypes';
-	import { FileButton, getToastStore } from '@skeletonlabs/skeleton';
+	import {
+		FileButton,
+		getToastStore,
+		getModalStore,
+		type ModalSettings,
+		type ModalComponent
+	} from '@skeletonlabs/skeleton';
 	import { error } from '@sveltejs/kit';
 	import type { PageData } from './$types';
+	import DeleteUser from '$lib/modals/deleteUser.svelte';
+	import { goto } from '$app/navigation';
 
 	// Page data injected from server response
 	export let data: PageData;
@@ -12,8 +20,9 @@
 	// Set the page title
 	title.set('Account details');
 
-	// Initialise toast store for notifications
+	// Initialise toast and modal store
 	const toastStore = getToastStore();
+	const modalStore = getModalStore();
 
 	// Error handling in the case that
 	if (data.profile === undefined) error(500);
@@ -62,6 +71,51 @@
 		avatar = await resp.json();
 	}
 
+	// Function to send account deletion request
+	async function deleteAccount(password: string) {
+		// Send DELETE request
+		const resp = await fetch('/account/delete', {
+			method: 'DELETE',
+			headers: {
+				accept: 'application/json'
+			},
+			body: new URLSearchParams({
+				username: profile.username,
+				password: password
+			})
+		});
+
+		// Handle if response is ok with corresponding toast notification
+		if (resp.ok) {
+			goto('/logout');
+			toastStore.trigger({
+				message: 'Successfully deleted account!',
+				background: 'variant-filled-success',
+				timeout: 5000
+			});
+		} else {
+			toastStore.trigger({
+				message: 'Failed to delete account!',
+				background: 'variant-filled-error',
+				timeout: 2000
+			});
+		}
+	}
+
+	// Function to open confirm password modal to delete account
+	async function deleteAccountBtn() {
+		const c: ModalComponent = { ref: DeleteUser };
+		const modal: ModalSettings = {
+			type: 'component',
+			component: c,
+			title: 'Delete account',
+			response: (password: string) => {
+				if (password) deleteAccount(password);
+			}
+		};
+		modalStore.trigger(modal);
+	}
+
 	// Save the changes made to the account
 	async function saveChanges() {
 		// Send PATCH request to update user info
@@ -88,7 +142,7 @@
 		} else {
 			toastStore.trigger({
 				message: 'Failed to update account info!',
-				background: 'variant-filled-success',
+				background: 'variant-filled-error',
 				timeout: 2000
 			});
 		}
@@ -182,7 +236,7 @@
 		</div>
 
 		<!-- Display account component with bound props -->
-		<div>
+		<div class="space-y-5">
 			<Account
 				bind:avatar
 				bind:username={profile.username}
@@ -191,6 +245,12 @@
 				bind:about_me
 				compact={false}
 			></Account>
+			<div>
+				<button on:click={deleteAccountBtn} class="btn variant-filled-error">Delete Account</button>
+				<button on:click={async () => await goto('/logout')} class="btn variant-filled-warning"
+					>Log out</button
+				>
+			</div>
 		</div>
 	</div>
 

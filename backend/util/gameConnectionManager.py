@@ -737,6 +737,7 @@ class GameConnectionManager(ConnectionManager):
                                     {"result": game.result, "winner": game.winner},
                                 ]
                             )
+                    await self.archive_match(code)
 
             case "decline":
                 opponent_ws = await self.get_ws(

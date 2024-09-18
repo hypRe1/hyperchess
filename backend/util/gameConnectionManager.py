@@ -713,7 +713,7 @@ class GameConnectionManager(ConnectionManager):
                 await opponent_ws.send_json(["draw", "offer"])
                 await ws.send_json(["draw", "sent"])
             case "accept":
-                if (username == game.black_player) and game.draw_offer:
+                if (username == game.white_player) ^ game.draw_offer:
                     game.game_over = True
                     game.result = Result.AGREEMENT
                     game.winner = None

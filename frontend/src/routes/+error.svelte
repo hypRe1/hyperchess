@@ -9,7 +9,7 @@
 
 	onMount(async () => {
 		const resp = await fetch(
-			`https://api.giphy.com/v1/gifs/random?api_key=0UTRbFtkMxAplrohufYco5IY74U8hOes&tag=fail&rating=g`,
+			`https://api.giphy.com/v1/gifs/random?api_key=0UTRbFtkMxAplrohufYco5IY74U8hOes&tag=cat&rating=g`,
 			{
 				method: 'GET'
 			}

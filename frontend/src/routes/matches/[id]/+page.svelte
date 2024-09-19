@@ -32,7 +32,7 @@
 
 	// States to toggle visibility of moves and engine analysis section
 	let movesHidden = false;
-	let engineHidden = false;
+	let engineHidden = true;
 
 	// Board flip state
 	let flipped = false;
@@ -99,21 +99,14 @@
 			<div class="card p-5 gap-3">
 				<h2 class="h2">Match analysis</h2>
 				<!-- Section collapser buttons -->
-				<button on:click={() => (movesHidden = !movesHidden)}>
+				<button
+					on:click={() => {
+						movesHidden = !movesHidden;
+						engineHidden = !engineHidden;
+					}}
+				>
 					<button type="button" class="btn btn-sm variant-filled"
-						>{movesHidden ? 'Show' : 'Hide'} Moves</button
-					>
-				</button>
-
-				<button on:click={() => (engineHidden = !engineHidden)}>
-					<button type="button" class="btn btn-sm variant-filled"
-						>{engineHidden ? 'Show' : 'Hide'} Engine Analysis</button
-					>
-				</button>
-
-				<button on:click={() => (engineHidden = !engineHidden)}>
-					<button type="button" class="btn btn-sm variant-filled"
-						>{engineHidden ? 'Show' : 'Hide'} Principal Variation</button
+						>Show {movesHidden ? 'moves' : 'engine analysis'}</button
 					>
 				</button>
 
@@ -142,7 +135,7 @@
 				</div>
 
 				<!-- Engine analysis section -->
-				<div hidden={engineHidden} class="space-y-1">
+				<div hidden={engineHidden} class="py-5">
 					<form
 						method="POST"
 						use:enhance={() => {
@@ -163,12 +156,11 @@
 									highlights = form.map((move) => move.best);
 									// @ts-ignore
 									scores = form.map((move) => move.score);
-									console.log(highlights);
 								}
 							};
 						}}
 					>
-						<h3 class="h3">Engine Analysis</h3>
+						<h4 class="h4">Engine Analysis</h4>
 
 						<!-- Engine selection dropdown -->
 						<label class="label">
@@ -187,7 +179,7 @@
 						</label>
 
 						<!-- Submit button for engine analysis form -->
-						<button type="submit" class="btn variant-ghost-primary self-start">Confirm</button>
+						<button type="submit" class="btn variant-ghost-primary self-start">Analyse</button>
 					</form>
 				</div>
 

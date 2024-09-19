@@ -44,6 +44,23 @@
 		}
 	}
 
+	function onKeyDown(e: KeyboardEvent) {
+		switch (e.key) {
+			case 'ArrowLeft':
+				if (pos > 0) {
+					pos = pos - 1;
+					set(pos);
+				}
+				break;
+			case 'ArrowRight':
+				if (pos < data.match.moves.length) {
+					pos = pos + 1;
+					set(pos);
+				}
+				break;
+		}
+	}
+
 	onMount(async () => {
 		// Set loading to false once component is mounted to the DOM
 		loading = false;
@@ -231,3 +248,5 @@
 		</div>
 	</div>
 </div>
+
+<svelte:window on:keydown={onKeyDown} />

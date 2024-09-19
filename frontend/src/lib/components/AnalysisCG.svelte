@@ -1,7 +1,7 @@
 <script lang="ts">
 	import CustomCG from '$lib/components/CustomCG.svelte';
 	import { Chess, type Move } from 'chess.js';
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { Chessground } from 'svelte-chessground';
 
 	export let piece: string;
@@ -74,7 +74,8 @@
 		}
 		assigned = true;
 		moveHistory = board.history({ verbose: true });
-		console.log(moveHistory);
+		await tick();
+		set(moves.length);
 	});
 </script>
 

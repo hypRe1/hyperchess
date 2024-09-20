@@ -20,7 +20,7 @@ const initialState: WebSocketStore = {
 
 export const socketStore = writable<WebSocketStore>(initialState);
 
-export const connectSocket = (onMessage: (message: MessageEvent) => void) => {
+export const connectSocket = (base: string, onMessage: (message: MessageEvent) => void) => {
     socketStore.update((state) => {
         if (state.socket && state.socket.readyState === WebSocket.OPEN) {
             // Reuse existing socket
@@ -29,7 +29,7 @@ export const connectSocket = (onMessage: (message: MessageEvent) => void) => {
         }
 
         // Create a new socket
-        const socket = new WebSocket("ws://127.0.0.1:8000/api/match/ws");
+        const socket = new WebSocket(`wss://${base}/api/match/ws`);
 
         socket.onopen = () => {
             // console.log('WebSocket connection established');

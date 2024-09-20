@@ -4,7 +4,7 @@ import { Chess, type Square, SQUARES } from 'chess.js';
 import { Chessground } from "svelte-chessground";
 
 export async function getProfile(username: string): Promise<PublicUserResponse> {
-    const resp = await fetch(`http://127.0.0.1:8000/api/user/profile/${username}`, {
+    const resp = await fetch(`/api/user/profile/${username}`, {
         method: 'GET'
     });
     return await resp.json();
@@ -31,7 +31,7 @@ export function makeEngineMove(chessground: Chessground, chess: Chess, depth: nu
             check: chess.isCheck()
         });
 
-        const response = await fetch('http://127.0.0.1:8000/api/engine/', {
+        const response = await fetch('/api/engine/', {
             method: 'POST',
             headers: {
                 'accept': 'application/json',

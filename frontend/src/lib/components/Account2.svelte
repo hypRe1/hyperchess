@@ -2,6 +2,7 @@
 	import Account from '$lib/components/Account.svelte';
 	import { getProfile } from '$lib/util';
 
+	// Exported props for the component
 	export let username: string;
 	export let loading: boolean = false;
 </script>

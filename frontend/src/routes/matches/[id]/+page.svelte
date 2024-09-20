@@ -111,7 +111,7 @@
 				</button>
 
 				<!-- Moves section -->
-				<div hidden={movesHidden}>
+				<div hidden={movesHidden} class="overflox-hidden overflow-auto max-h-96">
 					<table>
 						<tbody>
 							<!-- Loop through the first half of the moves, displaying two moves per row -->

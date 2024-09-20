@@ -142,7 +142,7 @@
 
 	onMount(() => {
 		// Open websocket
-		connectSocket(handleMessage);
+		connectSocket(window.location.host, handleMessage);
 
 		// Cleanup function when component is destroyed
 		return () => {

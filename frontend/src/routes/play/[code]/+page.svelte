@@ -338,7 +338,7 @@
 	};
 
 	onMount(() => {
-		connectSocket(handleMessage);
+		connectSocket(window.location.host, handleMessage);
 		if (hasConnectionState(ConnectionState.MATCH_PLAYING))
 			sendMessage(JSON.stringify(['joinMatch', data.code]));
 

@@ -48,7 +48,7 @@ class Matches(Base):
     white = Column(String(length=255))
     black = Column(String(length=255))
     moves = Column(BYTEA)
-    winner = Column(Boolean, nullable=False)
+    winner = Column(Boolean)
     result = Column(SmallInteger)
     hyperchess = Column(Boolean)
     time = Column(SmallInteger)

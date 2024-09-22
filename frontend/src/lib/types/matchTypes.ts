@@ -39,7 +39,7 @@ export interface MatchesResponse {
   black: string;
   n_moves: number;
   fen: string;
-  winner: boolean;
+  winner: boolean | null;
   result: number;
   time: number;
   bonus: number;

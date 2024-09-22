@@ -42,7 +42,7 @@ class MatchesResponse(BaseModel):
     black: str
     n_moves: int
     fen: str
-    winner: bool
+    winner: bool | None
     result: int
     time: int
     bonus: int

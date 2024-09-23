@@ -24,7 +24,7 @@ class MatchRequest(BaseModel):
     white: str
     black: str
     moves: list[str]
-    winner: bool
+    winner: bool | None
     result: int
     time: int
     bonus: int

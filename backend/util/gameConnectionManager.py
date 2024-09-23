@@ -19,14 +19,14 @@ class MatchListing(BaseModel):
     creator: str
     colour: Color | None
     time: float
-    bonus: int | None
+    bonus: int
 
 
 class MatchListingRequestForm(BaseModel):
     public: bool
     colour: Color | None
     time: float
-    bonus: int | None
+    bonus: int
 
 
 class GameConnectionManager(ConnectionManager):

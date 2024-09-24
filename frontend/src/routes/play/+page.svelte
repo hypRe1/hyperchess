@@ -228,7 +228,6 @@
 				<th>Player</th>
 				<th>Rating</th>
 				<th>Time</th>
-				<th>Mode</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -240,7 +239,6 @@
 					<td>{userListing.creator}</td>
 					<td>blank</td>
 					<td>{fractionTime(userListing.time)}+{userListing.bonus}</td>
-					<td>blank</td>
 				</tr>
 			{/if}
 

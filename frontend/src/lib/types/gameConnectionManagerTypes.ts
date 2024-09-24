@@ -11,11 +11,11 @@ export interface MatchListing {
   creator: string;
   colour: boolean | null;
   time: number;
-  bonus: number | null;
+  bonus: number;
 }
 export interface MatchListingRequestForm {
   public: boolean;
   colour: boolean | null;
   time: number;
-  bonus: number | null;
+  bonus: number;
 }

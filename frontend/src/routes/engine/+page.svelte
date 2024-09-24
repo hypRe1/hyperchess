@@ -11,9 +11,6 @@
 	let engine: string = 'hyperfish';
 	let depth: number = 5;
 
-	let pieces: string[] = data.pieces;
-	let boards: string[] = data.boards;
-
 	let piece = data.piece;
 	let board = data.board;
 	let fen: string = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
@@ -34,7 +31,7 @@
 </script>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
-	<div>
+	<div class="space-y-2">
 		<div>
 			<Account
 				avatar="https://cdn-icons-png.flaticon.com/512/1250/1250593.png"
@@ -67,7 +64,7 @@
 		</div>
 	</div>
 	<div class="card p-5 gap-3">
-		<h2 class="h2">Chess engine demo</h2>
+		<h2 class="h2">Chess engine</h2>
 		<div class="space-y-4 py-5">
 			<label class="label">
 				<span>Select Engine</span>
@@ -92,25 +89,6 @@
 						>Load fen</button
 					>
 				</div>
-			</label>
-			<label class="label">
-				<span>Piece</span>
-
-				<select class="select" name="pieceInput" bind:value={piece}>
-					{#each pieces as p}
-						<option value={p}>{p}</option>
-					{/each}
-				</select>
-			</label>
-
-			<label class="label">
-				<span>Board</span>
-
-				<select class="select" name="boardInput" bind:value={board}>
-					{#each boards as b}
-						<option value={b}>{b}</option>
-					{/each}
-				</select>
 			</label>
 		</div>
 	</div>

@@ -9,13 +9,13 @@ export interface MatchListingRequestForm {
   public: boolean;
   colour: boolean | null;
   time: number;
-  bonus: number | null;
+  bonus: number;
 }
 export interface MatchRequest {
   white: string;
   black: string;
   moves: string[];
-  winner: boolean;
+  winner: boolean | null;
   result: number;
   time: number;
   bonus: number;
@@ -25,7 +25,7 @@ export interface MatchResponse {
   white: string;
   black: string;
   moves: string[];
-  winner: boolean;
+  winner: boolean | null;
   result: number;
   time: number;
   bonus: number;

@@ -13,6 +13,10 @@
 <div class="space-y-4">
 	<h2 class="h2">Archived matches 📁</h2>
 
+	{#if data.matches.length == 0}
+		<h3 class="h3">Play a match or add a match in PGN notation</h3>
+	{/if}
+
 	<!-- Loop through matches displaying each one -->
 	{#each data.matches as match}
 		<!-- Link to match analysis page -->

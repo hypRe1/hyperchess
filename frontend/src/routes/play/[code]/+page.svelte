@@ -361,11 +361,9 @@
 			{#if boardMode !== BoardMode.black}
 				<Account username={loading ? 'Black player' : match.black_player} {loading}></Account>
 				<h2 class="h2 text-center">{displayTime(bt)}</h2>
-				<span>Captured pieces</span>
 			{:else}
 				<Account username={loading ? 'White player' : match.white_player} {loading}></Account>
 				<h2 class="h2 text-center">{displayTime(wt)}</h2>
-				<span>Captured pieces</span>
 			{/if}
 		</div>
 
@@ -387,11 +385,9 @@
 			{#if boardMode === BoardMode.black}
 				<Account username={loading ? 'Black player' : match.black_player} {loading}></Account>
 				<h2 class="h2 text-center">{displayTime(bt)}</h2>
-				<span>Captured pieces</span>
 			{:else}
 				<Account username={loading ? 'White player' : match.white_player} {loading}></Account>
 				<h2 class="h2 text-center">{displayTime(wt)}</h2>
-				<span>Captured pieces</span>
 			{/if}
 		</div>
 	</div>

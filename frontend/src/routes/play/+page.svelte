@@ -226,7 +226,6 @@
 				<th>Code</th>
 				<th>Colour</th>
 				<th>Player</th>
-				<th>Rating</th>
 				<th>Time</th>
 			</tr>
 		</thead>
@@ -237,7 +236,6 @@
 					<td><span class="badge variant-soft-primary">{userListing.code}</span></td>
 					<td>{getColourString(userListing.colour)}</td>
 					<td>{userListing.creator}</td>
-					<td>blank</td>
 					<td>{fractionTime(userListing.time)}+{userListing.bonus}</td>
 				</tr>
 			{/if}
@@ -249,9 +247,7 @@
 						<td><span class="badge variant-soft-primary">{listing.code}</span></td>
 						<td>{getColourString(listing.colour)}</td>
 						<td>{listing.creator}</td>
-						<td>blank</td>
 						<td>{fractionTime(listing.time)}+{listing.bonus}</td>
-						<td>blank</td>
 					</tr>
 				{/if}
 			{/each}

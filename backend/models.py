@@ -7,7 +7,6 @@ from sqlalchemy import (
     Integer,
     SmallInteger,
     String,
-    Table,
 )
 from sqlalchemy.dialects.postgresql import BYTEA
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -24,7 +23,6 @@ class Users(Base):
     registration_date = Column(DateTime)
     country = Column(String(length=2))  # ISO 3166-1 numeric
     picture = Column(BYTEA)
-    rating = Column(Integer)
     admin = Column(Boolean, nullable=False, default=False)
     disabled = Column(Boolean, nullable=False, default=False)
     appearance: Mapped["Appearance"] = relationship(back_populates="users")

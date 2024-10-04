@@ -11,7 +11,7 @@ from routers.user import user_dependency
 from sqlalchemy import select
 from util.gameCompressor import decompress_moves
 
-router = APIRouter(prefix="/engine")
+router = APIRouter(prefix="/engine", tags=["engine"])
 
 # Get engine directory containing engine executables from .env file
 ENGINES_LOC = os.getenv("ENGINES_LOC")

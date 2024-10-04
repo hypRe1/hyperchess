@@ -27,7 +27,6 @@ export interface PersonalUserResponse {
   avatar: string;
   about_me: string | null;
   country: string | null;
-  rating: number | null;
   registration_date: string;
   email: string;
 }
@@ -37,7 +36,6 @@ export interface PublicUserResponse {
   avatar: string;
   about_me: string | null;
   country: string | null;
-  rating: number | null;
   registration_date: string;
 }
 export interface Token {

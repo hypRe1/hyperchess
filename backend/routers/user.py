@@ -118,7 +118,6 @@ class PublicUserResponse(BaseModel):
     avatar: bytes
     about_me: str | None = Field(min_length=0, max_length=500)
     country: str | None = Field(min_length=2, max_length=2)
-    rating: int | None
     registration_date: datetime
 
 
@@ -469,7 +468,6 @@ async def get_personal_profile(user: user_dependency):
         avatar=user_picture_B64(user.picture),
         email=user.email,
         about_me=user.about_me,
-        rating=user.rating,
         country=user.country,
         registration_date=user.registration_date,
     )
@@ -496,7 +494,6 @@ async def get_user_profile(username: str, db: db_dependency):
         admin=user.admin,
         avatar=user_picture_B64(user.picture),
         about_me=user.about_me,
-        rating=user.rating,
         country=user.country,
         registration_date=user.registration_date,
     )
@@ -552,7 +549,7 @@ async def get_available_countries():
 
 
 @router.get("/default_avatar", status_code=200)
-async def get_available_countries():
+async def get_default_avatar():
     """
     Returns default avatar
     """

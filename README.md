@@ -42,6 +42,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```zsh
 cd backend
 python -m venv env
+source env/bin/activate
 pip install -r requirements.txt
 python main.py
 ```

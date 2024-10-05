@@ -20,6 +20,7 @@ pillow==10.2.0
 pyasn1==0.5.1
 pycparser==2.21
 pydantic==2.6.1
+pydantic-to-typescript==1.0.10
 pydantic_core==2.16.2
 python-dotenv==1.0.1
 python-jose==3.3.0

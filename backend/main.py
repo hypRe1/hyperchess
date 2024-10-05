@@ -13,9 +13,11 @@ from pydantic2ts import generate_typescript_defs
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    # Create redis connection for ratelimiter
     redis_connection = redis.from_url("redis://localhost:6379", encoding="utf8")
     await FastAPILimiter.init(redis_connection)
 
+    # Create database tables from ORM models
     async with engine.begin() as conn:
         # await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
@@ -30,6 +32,7 @@ app = FastAPI(
     description="Backend for hyperchess website",
 )
 
+# Create typescript types from pydantic models
 for router_file in os.listdir("routers"):
     filename = os.fsdecode(router_file)
     if filename.endswith(".py"):

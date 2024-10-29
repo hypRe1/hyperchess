@@ -19,7 +19,7 @@ function redirect(location: string, body?: string) {
 async function get_appearance(token: string | undefined): Promise<UserAppearance> {
     if (!token) {
         return {
-            "theme": "skeleton",
+            "theme": "crimson",
             "board": "blue",
             "piece": "staunty",
             "dark": true

@@ -126,7 +126,7 @@
 	</svelte:fragment>
 	<svelte:fragment slot="sidebarLeft">
 		<Navigation />
-		<p class="absolute bottom-0 p-4">Version 0.0.1</p>
+		<p class="absolute bottom-0 p-4">NEA release</p>
 	</svelte:fragment>
 	<!-- <svelte:fragment slot="sidebarRight">Sidebar Right</svelte:fragment> -->
 	<!-- <svelte:fragment slot="pageHeader">Page Header</svelte:fragment> -->

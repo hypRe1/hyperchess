@@ -2,6 +2,8 @@
 
 Chess website built using a FastApi backend, SvelteKit frontend and PostgreSQL database as part of my CompSci NEA
 
+<img width="739" height="400" alt="image" src="https://github.com/user-attachments/assets/cd5dd48b-bafa-4504-bac6-bca90d84488f" />
+
 ## Features
 
 - Account system
